@@ -115,15 +115,14 @@ export function TarjetaInforme() {
                   {CHIPS.map(({ nombre, Icono, posicion }, i) => (
                     <li key={nombre} data-chip-caja className={`relative lg:absolute ${posicion}`}>
                       <div data-chip={i} className="relative rounded-full border border-linea/80 bg-white opacity-0 shadow-sm">
-                        {/* El verde tapa al rojo: cada capa solo entra, nunca sale */}
-                        <span data-chip-rojo className="absolute inset-0 rounded-full bg-deuda/10 opacity-0" />
+                                                <span className="absolute inset-0 rounded-full bg-deuda/10" />
                         <span data-chip-verde className="absolute inset-0 rounded-full bg-limpio-claro opacity-0" />
                         <span className="relative flex items-center gap-1 px-1.5 py-1 text-[0.6rem] font-medium whitespace-nowrap text-marino lg:gap-1.5 lg:px-3 lg:py-2 lg:text-xs">
                           <Icono className="size-3.5 lg:size-4" />
                           <span className="max-[359px]:sr-only">{nombre}</span>
                           <span className="relative size-3.5 lg:size-4">
                             <span data-candado-caja className="absolute inset-0">
-                              <IconoCandado data-candado className="size-full text-deuda opacity-0" strokeWidth={2} />
+                              <IconoCandado className="size-full text-deuda" strokeWidth={2} />
                             </span>
                             <IconoCandadoAbierto data-candado-abierto className="absolute inset-0 size-full text-limpio opacity-0" strokeWidth={2} />
                           </span>

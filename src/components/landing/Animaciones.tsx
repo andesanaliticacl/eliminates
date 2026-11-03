@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import type { Antecedente } from "@/lib/tipos";
+import { antecedentesActuales } from "../wizard/borrador";
 
 // Todo se carga de forma diferida: GSAP y Lenis no compiten con el primer pintado (Lighthouse móvil).
 //
-// Regla de estas escenas: cada propiedad de cada elemento la anima un solo timeline. Si dos scrub
-// distintos escribieran el mismo valor, al saltar con el scroll ganaría el último en ejecutarse y
-// la tarjeta quedaría en un estado incorrecto. Por eso entrar y salir usan elementos anidados
-// (data-chip / data-chip-caja) y el medidor suma sus tramos en un solo lugar.
+// El informe no lo mueve el scroll: refleja un estado (qué eligió la persona y si ya llegó a la
+// escena de confianza). pintar() anima desde donde esté hacia ese estado, así nunca queda a medias.
+// Solo el giro final sigue atado al scroll.
 export function Animaciones() {
   useEffect(() => {
     let cancelado = false;
@@ -37,13 +38,13 @@ export function Animaciones() {
 type Gsap = typeof import("gsap").gsap;
 type ST = typeof import("gsap/ScrollTrigger").ScrollTrigger;
 
+// Mismo orden que las filas del informe y las detecciones del radar.
+const ORDEN_FILAS: Antecedente[] = ["dicom", "informe_comercial", "financiero", "penal"];
+const AGUJA_INICIO = -90;
+const AGUJA_MOROSO = -70;
+const AGUJA_POR_FILA = 34;
+const AGUJA_LIMPIO = 68;
 const SCRUB = 0.8;
-const AGUJA_BASE = -90;
-const AGUJA_FINAL = 68;
-// Lo que sube la aguja: barrido al cargar, cada servicio y el historial limpio.
-const TRAMOS_AGUJA = [20, 30, 22, 24, 62];
-// Filas del informe que elimina cada tarjeta de servicio.
-const FILAS_POR_SERVICIO = [[0, 1], [3], [2]];
 
 /** Envuelve cada palabra en una máscara para que suba desde abajo. El texto sigue siendo el mismo. */
 function dividirTitulo(titulo: HTMLElement): () => void {
@@ -69,82 +70,123 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s);
   const $$ = <T extends Element = HTMLElement>(s: string) => gsap.utils.toArray<T>(s);
 
+  // Movimiento reducido: el informe igual responde, pero cambia sin animar y sin smooth scroll.
+  const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const seg = (s: number) => (reducido ? 0 : s);
+
   const aguja = $<SVGGElement>("[data-aguja]")!;
   const puntaje = $("[data-puntaje]")!;
-  const dibujarAguja = (rotacion: number) => {
-    aguja.style.transform = `rotate(${rotacion}deg)`;
-    puntaje.textContent = String(Math.round(300 + ((rotacion + 90) / 180) * 550));
+  const rotacion = { r: AGUJA_INICIO };
+  const dibujarAguja = () => {
+    aguja.style.transform = `rotate(${rotacion.r}deg)`;
+    puntaje.textContent = String(Math.round(300 + ((rotacion.r + 90) / 180) * 550));
   };
 
-  // Movimiento reducido: estados finales, sin animación ni smooth scroll.
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    dibujarAguja(AGUJA_FINAL);
-    gsap.set("[data-texto-limpio], [data-fila-eliminado], [data-chip], [data-chip-verde], [data-candado-abierto], [data-servicio-ok], [data-servicio-borde], [data-paso-punto], [data-barrido-verde]", { opacity: 1 });
-    gsap.set("[data-texto-moroso], [data-fila-valor], [data-barrido-rojo], [data-deteccion]", { opacity: 0 });
-    gsap.set("[data-fila-etiqueta]", { opacity: 0.7 });
-    gsap.set("[data-tachado], [data-fila-fondo], [data-cabecera-limpia]", { scaleX: 1 });
-    gsap.set("[data-linea-progreso]", { scaleY: 1 });
-    return () => {};
-  }
+  gsap.set("[data-sello]", { xPercent: -50, yPercent: -50, rotation: -4 });
 
-  const { default: Lenis } = await import("lenis");
-  const lenis = new Lenis({ lerp: 0.1 });
-  window.__lenis = lenis;
-  lenis.on("scroll", ScrollTrigger.update);
-  const tic = (t: number) => lenis.raf(t * 1000);
-  gsap.ticker.add(tic);
-  gsap.ticker.lagSmoothing(0);
+  // ─── Estado del informe ───────────────────────────────────────────────────
+  let llegoAConfianza = false;
+  let estabaLimpio = false;
+  let primeraVez = true;
 
-  const escena = (trigger: gsap.DOMTarget, start: string, end: string) =>
-    gsap.timeline({ scrollTrigger: { trigger, start, end, scrub: SCRUB } });
+  const pintar = () => {
+    const elegidas = antecedentesActuales();
+    const limpio = llegoAConfianza || elegidas.length === ORDEN_FILAS.length;
+    const a = { overwrite: "auto" as const };
 
-  // Dentro de un timeline, fromTo pintaría su estado inicial de inmediato y pisaría al HTML.
-  const desde = (tl: gsap.core.Timeline, target: gsap.TweenTarget, de: gsap.TweenVars, a: gsap.TweenVars, posicion: number) =>
-    tl.fromTo(target, de, { ...a, immediateRender: false }, posicion);
-
-  const tramos = TRAMOS_AGUJA.map((delta) => ({ delta, avance: 0 }));
-  const actualizarAguja = () => dibujarAguja(tramos.reduce((suma, t) => suma + t.delta * t.avance, AGUJA_BASE));
-  const moverAguja = (i: number, trigger: gsap.DOMTarget, start: string, end: string) =>
-    gsap.to(tramos[i], { avance: 1, ease: "power2.inOut", onUpdate: actualizarAguja, scrollTrigger: { trigger, start, end, scrub: SCRUB } });
-
-  const restaurarTitulos = $$("[data-titulo]").map(dividirTitulo);
-
-  // ─── Común a desktop y mobile ─────────────────────────────────────────────
-  const contexto = gsap.context(() => {
-    gsap.fromTo("#barra-progreso", { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.2 } });
-
-    // Al cargar, la aguja barre hasta la zona roja
-    gsap.to(tramos[0], { avance: 1, delay: 0.5, duration: 1.4, ease: "power3.out", onUpdate: actualizarAguja });
-
-    // Titulares: cada palabra sube desde su máscara
-    $$("[data-titulo]").forEach((titulo) => {
-      gsap.fromTo(
-        titulo.querySelectorAll("[data-palabra]"),
-        { yPercent: 115 },
-        { yPercent: 0, duration: 1, stagger: 0.06, ease: "power4.out", scrollTrigger: { trigger: titulo, start: "top 88%", toggleActions: "play none none reverse" } },
-      );
+    let eliminadas = 0;
+    ORDEN_FILAS.forEach((id, i) => {
+      const activa = limpio || elegidas.includes(id);
+      if (activa) eliminadas += 1;
+      const s = `[data-fila="${i}"]`;
+      gsap.to(`${s} [data-tachado]`, { scaleX: activa ? 1 : 0, duration: seg(0.4), ease: "power2.inOut", ...a });
+      gsap.to(`${s} [data-fila-fondo]`, { scaleX: activa ? 1 : 0, duration: seg(0.5), delay: seg(activa ? 0.1 : 0), ease: "power3.out", ...a });
+      gsap.to(`${s} [data-fila-etiqueta]`, { opacity: activa ? 0.7 : 1, duration: seg(0.3), ...a });
+      gsap.to(`${s} [data-fila-valor]`, { opacity: activa ? 0 : 1, duration: seg(0.2), ...a });
+      gsap.to(`${s} [data-fila-eliminado]`, { opacity: activa ? 1 : 0, scale: activa ? 1 : 0.85, duration: seg(0.35), delay: seg(activa ? 0.15 : 0), ease: "back.out(1.7)", ...a });
+      gsap.to(`[data-deteccion="${i}"]`, { opacity: activa ? 0 : 1, scale: activa ? 0.6 : 1, duration: seg(0.4), ...a });
     });
 
-    // Texto corrido: discreto y siempre legible
-    $$("[data-revelar]").forEach((el) => {
-      gsap.fromTo(
-        el,
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%", toggleActions: "play none none reverse" } },
-      );
+    gsap.to(rotacion, {
+      r: limpio ? AGUJA_LIMPIO : AGUJA_MOROSO + eliminadas * AGUJA_POR_FILA,
+      duration: seg(primeraVez ? 1.4 : 0.8),
+      delay: seg(primeraVez ? 0.4 : 0),
+      ease: "power3.out",
+      overwrite: true,
+      onUpdate: dibujarAguja,
+      onComplete: dibujarAguja,
+    });
+
+    gsap.to("[data-cabecera-limpia]", { scaleX: limpio ? 1 : 0, duration: seg(0.6), ease: "power2.inOut", ...a });
+    gsap.to("[data-texto-moroso]", { yPercent: limpio ? -130 : 0, opacity: limpio ? 0 : 1, duration: seg(0.3), ...a });
+    gsap.to("[data-texto-limpio]", { yPercent: limpio ? 0 : 130, opacity: limpio ? 1 : 0, duration: seg(0.4), delay: seg(limpio ? 0.15 : 0), ...a });
+    gsap.to("[data-barrido-rojo]", { opacity: limpio ? 0 : 1, duration: seg(0.6), ...a });
+    gsap.to("[data-barrido-verde]", { opacity: limpio ? 1 : 0, duration: seg(0.6), ...a });
+    gsap.to("[data-destello]", { opacity: limpio ? 0.45 : 0, duration: seg(0.6), ...a });
+    gsap.to("[data-candado-caja]", { opacity: limpio ? 0 : 1, duration: seg(0.25), ...a });
+    gsap.to("[data-candado-abierto]", { opacity: limpio ? 1 : 0, duration: seg(0.3), ...a });
+    gsap.to("[data-chip-verde]", { opacity: limpio ? 1 : 0, duration: seg(0.4), ...a });
+
+    if (limpio && !estabaLimpio && !reducido) {
+      gsap.fromTo("[data-radar-pulso]", { attr: { r: 120 }, opacity: 0.55 }, { attr: { r: 480 }, opacity: 0, duration: 1.4, ease: "power2.out", overwrite: "auto" });
+    }
+    estabaLimpio = limpio;
+    primeraVez = false;
+  };
+
+  // En el momento limpio no compite ningún sello con el encabezado verde.
+  let selloPedido = -1;
+  const pintarSello = () => {
+    const activo = llegoAConfianza ? -1 : selloPedido;
+    $$("[data-sello]").forEach((sello, i) => {
+      const si = i === activo;
+      gsap.to(sello, { opacity: si ? 1 : 0, scale: si ? 1 : 1.12, duration: seg(si ? 0.35 : 0.2), ease: "power3.out", overwrite: "auto" });
+    });
+  };
+  const alCambiarSello = (e: Event) => {
+    selloPedido = (e as CustomEvent<number>).detail;
+    pintarSello();
+  };
+
+  window.addEventListener("eliminate:seleccion", pintar);
+  window.addEventListener("eliminate:sello", alCambiarSello);
+  pintar();
+
+  const contexto = gsap.context(() => {
+    // Las puertas aparecen con el problema
+    ScrollTrigger.create({
+      trigger: "#escena-problema",
+      start: "top 75%",
+      end: "max",
+      onToggle: (self) => {
+        gsap.to("[data-chip]", { opacity: self.isActive ? 1 : 0, y: self.isActive ? 0 : 8, duration: seg(0.45), stagger: seg(0.08), ease: "power2.out", overwrite: "auto" });
+      },
+    });
+
+    // Al llegar a la confianza, el informe queda limpio; al volver, respeta lo que se había elegido
+    ScrollTrigger.create({
+      trigger: "#escena-confianza",
+      start: "top 45%",
+      end: "max",
+      onToggle: (self) => {
+        llegoAConfianza = self.isActive;
+        pintar();
+        pintarSello();
+      },
     });
 
     $$("[data-contador]").forEach((el) => {
+      if (reducido) return;
       const meta = Number(el.dataset.contador);
       const valor = { n: 0 };
       ScrollTrigger.create({
         trigger: el,
-        start: "top 85%",
+        start: "top 90%",
         once: true,
         onEnter: () => {
           gsap.to(valor, {
             n: meta,
-            duration: 1.8,
+            duration: 1.6,
             ease: "power2.out",
             onUpdate: () => {
               el.textContent = Math.round(valor.n).toLocaleString("es-CL");
@@ -153,71 +195,53 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
         },
       });
     });
+  });
 
-    // Escena 2: las puertas se cierran
-    const tlProblema = escena("#escena-problema", "top 72%", "top 18%");
-    $$("[data-chip]").forEach((chip, i) => {
-      const t = i * 0.3;
-      desde(tlProblema, chip, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t);
-      desde(tlProblema, chip.querySelector("[data-candado]"), { opacity: 0, scale: 1.3 }, { opacity: 1, scale: 1, duration: 0.25, ease: "power2.out" }, t + 0.3);
-      desde(tlProblema, chip.querySelector("[data-chip-rojo]"), { opacity: 0 }, { opacity: 1, duration: 0.2 }, t + 0.35);
-    });
+  const quitarEventos = () => {
+    window.removeEventListener("eliminate:seleccion", pintar);
+    window.removeEventListener("eliminate:sello", alCambiarSello);
+  };
 
-    // Escena 3: cada servicio elimina sus filas y apaga su detección en el radar
-    $$("[data-servicio]").forEach((tarjeta, i) => {
-      const inicio = "top 92%";
-      const fin = "top 48%";
-      const tl = escena(tarjeta, inicio, fin);
-      desde(tl, tarjeta, { opacity: 0, y: 36 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0);
-      FILAS_POR_SERVICIO[i].forEach((fila, j) => {
-        const s = `[data-fila="${fila}"]`;
-        const t = 0.45 + j * 0.45;
-        desde(tl, `${s} [data-tachado]`, { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.inOut" }, t);
-        desde(tl, `${s} [data-fila-fondo]`, { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, t + 0.2);
-        desde(tl, `${s} [data-fila-etiqueta]`, { opacity: 1 }, { opacity: 0.7, duration: 0.2 }, t + 0.2);
-        desde(tl, `${s} [data-fila-valor]`, { opacity: 1, x: 0 }, { opacity: 0, x: 10, duration: 0.15 }, t + 0.25);
-        desde(tl, `${s} [data-fila-eliminado]`, { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.7)" }, t + 0.3);
-        desde(tl, `[data-deteccion="${fila}"]`, { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.6, duration: 0.35, ease: "power2.in" }, t + 0.2);
-      });
-      const cierre = 0.8 + (FILAS_POR_SERVICIO[i].length - 1) * 0.45;
-      desde(tl, tarjeta.querySelector("[data-servicio-borde]"), { opacity: 0 }, { opacity: 1, duration: 0.25 }, cierre);
-      desde(tl, tarjeta.querySelector("[data-servicio-ok]"), { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, cierre);
-      moverAguja(i + 1, tarjeta, inicio, fin);
-    });
+  if (reducido) {
+    return () => {
+      quitarEventos();
+      contexto.revert();
+    };
+  }
 
-    // Escena 4: línea de progreso, puntos que se encienden y sellos sucesivos
-    gsap.fromTo("[data-linea-progreso]", { scaleY: 0 }, { scaleY: 1, ease: "none", scrollTrigger: { trigger: "[data-lista-pasos]", start: "top 62%", end: "bottom 62%", scrub: SCRUB } });
-    $$("[data-paso]").forEach((paso) => {
-      const tl = escena(paso, "top 66%", "top 56%");
-      desde(tl, paso.querySelector("[data-paso-punto]"), { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 1, ease: "power2.out" }, 0);
-    });
-    const tlSellos = gsap.timeline({
-      scrollTrigger: { trigger: "[data-lista-pasos]", start: "top 72%", endTrigger: "#escena-confianza", end: "top 65%", scrub: SCRUB },
-    });
-    $$("[data-sello]").forEach((sello, i) => {
-      desde(tlSellos, sello, { opacity: 0, scale: 1.2, rotation: -4, xPercent: -50, yPercent: -50 }, { opacity: 1, scale: 1, rotation: -4, xPercent: -50, yPercent: -50, duration: 0.3, ease: "power3.out" }, i);
-      tlSellos.to(sello, { opacity: 0, duration: 0.2 }, i + 0.8);
+  const { default: Lenis } = await import("lenis");
+  const lenis = new Lenis({ lerp: 0.12 });
+  window.__lenis = lenis;
+  lenis.on("scroll", ScrollTrigger.update);
+  const tic = (t: number) => lenis.raf(t * 1000);
+  gsap.ticker.add(tic);
+  gsap.ticker.lagSmoothing(0);
+
+  const restaurarTitulos = $$("[data-titulo]").map(dividirTitulo);
+
+  // Dentro de un timeline, fromTo pintaría su estado inicial de inmediato y pisaría al HTML.
+  const desde = (tl: gsap.core.Timeline, target: gsap.TweenTarget, de: gsap.TweenVars, a: gsap.TweenVars, posicion: number) =>
+    tl.fromTo(target, de, { ...a, immediateRender: false }, posicion);
+
+  contexto.add(() => {
+    gsap.fromTo("#barra-progreso", { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.2 } });
+
+    $$("[data-titulo]").forEach((titulo) => {
+      gsap.fromTo(
+        titulo.querySelectorAll("[data-palabra]"),
+        { yPercent: 115 },
+        { yPercent: 0, duration: 0.9, stagger: 0.05, ease: "power4.out", scrollTrigger: { trigger: titulo, start: "top 92%", toggleActions: "play none none reverse" } },
+      );
     });
 
-    // Escena 5: historial limpio. El radar pasa a verde y emite un pulso
-    const inicioLimpio = "top 65%";
-    const finLimpio = "top 12%";
-    const tlLimpio = escena("#escena-confianza", inicioLimpio, finLimpio);
-    desde(tlLimpio, "[data-cabecera-limpia]", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, 0.3);
-    desde(tlLimpio, "[data-texto-moroso]", { yPercent: 0, opacity: 1 }, { yPercent: -130, opacity: 0, duration: 0.2, ease: "power2.in" }, 0.45);
-    desde(tlLimpio, "[data-texto-limpio]", { yPercent: 130, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 0.6);
-    desde(tlLimpio, "[data-barrido-rojo]", { opacity: 1 }, { opacity: 0, duration: 0.5 }, 0.3);
-    desde(tlLimpio, "[data-barrido-verde]", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.3);
-    desde(tlLimpio, "[data-destello]", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.6);
-    tlLimpio.to("[data-destello]", { opacity: 0.4, duration: 0.5 }, 0.85);
-    tlLimpio.fromTo("[data-radar-pulso]", { attr: { r: 120 }, opacity: 0 }, { keyframes: { opacity: [0, 0.55, 0] }, attr: { r: 480 }, duration: 0.7, ease: "none", immediateRender: false }, 0.5);
-    $$("[data-chip]").forEach((chip, i) => {
-      const t = 0.6 + i * 0.07;
-      desde(tlLimpio, chip.querySelector("[data-candado-caja]"), { opacity: 1 }, { opacity: 0, duration: 0.12 }, t);
-      desde(tlLimpio, chip.querySelector("[data-candado-abierto]"), { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, t + 0.05);
-      desde(tlLimpio, chip.querySelector("[data-chip-verde]"), { opacity: 0 }, { opacity: 1, duration: 0.2 }, t);
+    // Tarjetas: entran juntas y rápido, sin esperar scroll
+    $$("[data-revelar]").forEach((el) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 95%", toggleActions: "play none none reverse" } },
+      );
     });
-    moverAguja(4, "#escena-confianza", inicioLimpio, finLimpio);
   });
 
   const mm = gsap.matchMedia();
@@ -234,8 +258,6 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
     };
     window.addEventListener("pointermove", moverPuntero, { passive: true });
 
-    // El texto del hero se aleja mientras la historia empieza
-    gsap.fromTo("[data-hero-texto]", { opacity: 1, y: 0 }, { opacity: 0, y: -48, ease: "power1.in", scrollTrigger: { trigger: "#inicio", start: "top top", end: "bottom 30%", scrub: SCRUB } });
     gsap.fromTo("[data-desliza]", { opacity: 1 }, { opacity: 0, ease: "none", scrollTrigger: { start: 0, end: 160, scrub: 0.2 } });
 
     const frente = $("[data-frente]")!;
@@ -281,7 +303,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
 
   // ─── Mobile: giro simple dentro de la tarjeta compacta ────────────────────
   mm.add("(max-width: 1023px)", () => {
-    const tl = escena("#escena-turno", "top 75%", "top 25%");
+    const tl = gsap.timeline({ scrollTrigger: { trigger: "#escena-turno", start: "top 75%", end: "top 25%", scrub: SCRUB } });
     tl.to("[data-chip-caja]", { opacity: 0, duration: 0.2 }, 0);
     tl.to("[data-radar]", { opacity: 0, duration: 0.5 }, 0.3);
     desde(tl, "[data-frente]", { rotationY: 0 }, { rotationY: -90, duration: 0.5, ease: "power2.in" }, 0);
@@ -296,6 +318,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   document.fonts?.ready.then(refrescar);
 
   return () => {
+    quitarEventos();
     window.removeEventListener("load", refrescar);
     contexto.revert();
     mm.revert();

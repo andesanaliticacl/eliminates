@@ -5,10 +5,10 @@ const ANILLOS = [120, 210, 300, 390, 480];
 
 // Coordenadas sobre un viewBox de 1000, con el centro detrás de la tarjeta. Mismo orden que las filas.
 const DETECCIONES = [
-  { x: 270, y: 225, etiqueta: "Deuda castigada", lado: "izquierda" },
-  { x: 722, y: 200, etiqueta: "Morosidad comercial", lado: "derecha" },
-  { x: 722, y: 772, etiqueta: "Informe financiero", lado: "derecha" },
-  { x: 265, y: 772, etiqueta: "Antecedente penal", lado: "izquierda" },
+  { x: 270, y: 225, etiqueta: "Deuda castigada" },
+  { x: 722, y: 200, etiqueta: "Morosidad comercial" },
+  { x: 722, y: 772, etiqueta: "Informe financiero" },
+  { x: 265, y: 772, etiqueta: "Antecedente penal" },
 ] as const;
 
 export function Radar() {
@@ -34,10 +34,10 @@ export function Radar() {
 
       {/* Las detecciones solo caben alrededor de la tarjeta en desktop */}
       <div className="absolute inset-0 hidden lg:block">
-        {DETECCIONES.map(({ x, y, etiqueta, lado }, i) => (
+        {DETECCIONES.map(({ x, y, etiqueta }, i) => (
           <div key={etiqueta} data-deteccion={i} className="absolute" style={{ left: `${x / 10}%`, top: `${y / 10}%` }}>
             <span className="radar-punto absolute -top-1 -left-1 size-2 rounded-full bg-deuda" />
-            <span className={`absolute top-1/2 hidden -translate-y-1/2 text-[0.7rem] font-medium xl:block whitespace-nowrap text-deuda ${lado === "izquierda" ? "right-3.5" : "left-3.5"}`}>
+            <span className="absolute top-1/2 left-3.5 hidden -translate-y-1/2 text-[0.7rem] font-medium whitespace-nowrap text-deuda xl:block">
               {etiqueta}
             </span>
           </div>

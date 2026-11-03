@@ -76,6 +76,11 @@ export function actualizarBorrador(cambios: Partial<Borrador>) {
   oyentes.forEach((o) => o());
 }
 
+export function antecedentesActuales(): Antecedente[] {
+  hidratar();
+  return actual.antecedentes;
+}
+
 export function limpiarBorrador() {
   actual = BORRADOR_VACIO;
   try {

@@ -1,8 +1,10 @@
-import { IconoBalanza, IconoCheck, IconoDocumento, IconoEscudo, IconoFlecha, IconoMas, IconoWhatsApp } from "@/components/iconos";
+import { IconoBalanza, IconoBanco, IconoCandado, IconoCandadoAbierto, IconoCasa, IconoCheck, IconoEscudo, IconoFlecha, IconoMaletin, IconoMas, IconoTarjeta, IconoWhatsApp } from "@/components/iconos";
 import { Animaciones } from "@/components/landing/Animaciones";
 import { Cta } from "@/components/landing/Cta";
 import { Navbar } from "@/components/landing/Navbar";
+import { PasosInteractivos } from "@/components/landing/PasosInteractivos";
 import { Pie } from "@/components/landing/Pie";
+import { SelectorAntecedentes } from "@/components/landing/SelectorAntecedentes";
 import { Escenario } from "@/components/landing/TarjetaInforme";
 import { Wizard } from "@/components/wizard/Wizard";
 import { enlaceWhatsApp, NOTA_LEGAL, urlSitio } from "@/lib/config";
@@ -10,32 +12,11 @@ import { configPublica } from "@/lib/store";
 
 export const revalidate = 60;
 
-const SERVICIOS = [
-  {
-    titulo: "Antecedentes comerciales y financieros",
-    texto: "DICOM, deuda castigada e informes comerciales.",
-    logro: "Deuda y morosidad",
-    Icono: IconoDocumento,
-  },
-  {
-    titulo: "Antecedentes penales",
-    texto: "Revisión de requisitos, preparación de antecedentes y seguimiento hasta el resultado.",
-    logro: "Antecedente penal",
-    Icono: IconoEscudo,
-  },
-  {
-    titulo: "Gestión legal",
-    texto: "Vía administrativa, vía judicial y representación completa.",
-    logro: "Informe financiero",
-    Icono: IconoBalanza,
-  },
-];
-
-const PASOS = [
-  { titulo: "Nos cuentas tu caso", texto: "Formulario breve, sin costo y sin compromiso." },
-  { titulo: "Análisis en 24 horas", texto: "Un abogado revisa tus antecedentes y qué se puede hacer." },
-  { titulo: "Te proponemos la vía legal", texto: "Con plazos y costos claros, antes de avanzar." },
-  { titulo: "Gestionamos todo hasta el cierre", texto: "Tú sigues con lo tuyo; nosotros hacemos el trámite." },
+const PUERTAS = [
+  { nombre: "Banco", texto: "Créditos y cuentas rechazados", Icono: IconoBanco },
+  { nombre: "Crédito", texto: "Tarjetas y avances negados", Icono: IconoTarjeta },
+  { nombre: "Arriendo", texto: "Contratos que no salen", Icono: IconoCasa },
+  { nombre: "Trabajo", texto: "Ofertas que no avanzan", Icono: IconoMaletin },
 ];
 
 const PREGUNTAS = [
@@ -106,7 +87,7 @@ export default async function Inicio() {
           <div className="mx-auto max-w-[77.5rem] px-4 lg:px-8">
             <div className="lg:relative lg:z-20 lg:w-[46%]">
               {/* 1. Hero */}
-              <section id="inicio" className="relative flex min-h-[calc(100svh-13rem)] flex-col justify-start pt-3 pb-16 lg:min-h-svh lg:justify-center lg:py-24">
+              <section id="inicio" className="relative flex flex-col justify-start pt-3 pb-10 lg:min-h-[88svh] lg:justify-center lg:pt-20 lg:pb-10">
                 <div data-hero-texto>
                 <h1 className="text-[3.25rem] leading-[0.98] font-semibold tracking-[-0.035em] text-marino sm:text-7xl lg:text-[5.5rem]">
                   <span className="palabra" style={{ "--i": 0 } as React.CSSProperties}>ELIMINA</span>{" "}
@@ -138,94 +119,76 @@ export default async function Inicio() {
               </section>
 
               {/* 2. El problema */}
-              <section id="escena-problema" className="py-16 lg:flex lg:min-h-[90svh] lg:flex-col lg:justify-center lg:py-24">
-                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Tu historial te está cerrando puertas</h2>
-                <p data-revelar className="mt-5 max-w-md text-lg leading-relaxed text-tenue">
-                  Un crédito rechazado, un arriendo que no sale, una oferta de trabajo que no avanza. Todo por un registro que quizás ya se puede eliminar.
-                </p>
-              </section>
-
-              {/* 3. Servicios */}
-              <section id="servicios" className="scroll-mt-20 py-16 lg:py-24">
-                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Lo que te frena, lo eliminamos</h2>
-                <div className="mt-10 grid gap-5 lg:mt-20 lg:gap-[28svh]">
-                  {SERVICIOS.map(({ titulo, texto, logro, Icono }) => (
-                    <article key={titulo} data-servicio className="relative rounded-2xl border border-linea/80 bg-white p-6 shadow-[0_1px_2px_rgb(11_31_58/0.04)] lg:p-8">
-                      <span data-servicio-borde aria-hidden="true" className="pointer-events-none absolute -inset-px rounded-2xl border border-limpio/60 opacity-0" />
-                      <div className="flex items-center justify-between gap-3">
-                        <Icono className="size-6 text-marino" />
-                        <span data-servicio-ok aria-hidden="true" className="flex items-center gap-1 rounded-full bg-limpio-claro px-2.5 py-1 text-xs font-medium text-limpio-oscuro opacity-0">
-                          <IconoCheck className="size-3.5" strokeWidth={2.2} />
-                          {logro}
+              <section id="escena-problema" className="py-8 lg:py-10">
+                <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Tu historial te está cerrando puertas</h2>
+                <ul className="mt-6 grid grid-cols-2 gap-3">
+                  {PUERTAS.map(({ nombre, texto, Icono }) => (
+                    <li key={nombre} data-revelar className="rounded-2xl border border-linea/80 bg-white p-4 shadow-[0_1px_2px_rgb(11_31_58/0.05)] lg:p-5">
+                      <div className="flex items-center justify-between">
+                        <Icono className="size-5 text-marino" />
+                        <span className="relative size-5" aria-hidden="true">
+                          <span data-candado-caja className="absolute inset-0"><IconoCandado className="size-full text-deuda" /></span>
+                          <IconoCandadoAbierto data-candado-abierto className="absolute inset-0 size-full text-limpio opacity-0" />
                         </span>
                       </div>
-                      <h3 className="mt-4 text-xl font-semibold tracking-tight text-marino lg:text-2xl">{titulo}</h3>
-                      <p className="mt-2 leading-relaxed text-tenue">{texto}</p>
-                    </article>
+                      <h3 className="mt-3 font-semibold tracking-tight text-marino">{nombre}</h3>
+                      <p className="mt-0.5 text-sm leading-snug text-tenue">{texto}</p>
+                    </li>
                   ))}
-                </div>
+                </ul>
+              </section>
+
+              {/* 3. Servicios: la persona limpia su propio informe */}
+              <section id="servicios" className="scroll-mt-20 py-8 lg:py-10">
+                <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Lo que te frena, lo eliminamos</h2>
+                <p className="mt-3 text-tenue">Toca lo que te aplica y mira cómo cambia tu informe.</p>
+                <SelectorAntecedentes />
               </section>
 
               {/* 4. Cómo funciona */}
-              <section id="como-funciona" className="scroll-mt-20 py-16 lg:py-32">
-                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Cómo funciona</h2>
-                <ol data-lista-pasos className="relative mt-10 grid gap-10 lg:mt-20 lg:gap-[18svh]">
-                  <span aria-hidden="true" className="absolute top-2 bottom-2 left-[1.0625rem] w-px bg-linea" />
-                  <span aria-hidden="true" data-linea-progreso className="absolute top-2 bottom-2 left-[1.0625rem] w-px origin-top scale-y-0 bg-limpio" />
-                  {PASOS.map(({ titulo, texto }, i) => (
-                    <li key={titulo} data-paso className="relative flex gap-5">
-                      <span className="relative grid size-9 shrink-0 place-items-center rounded-full border border-linea bg-white text-xs font-semibold text-marino tabular-nums">
-                        0{i + 1}
-                        <span data-paso-punto aria-hidden="true" className="absolute -inset-px grid place-items-center rounded-full bg-limpio text-white opacity-0">0{i + 1}</span>
-                      </span>
-                      <div data-revelar>
-                        <h3 className="text-xl font-semibold tracking-tight text-marino lg:text-2xl">{titulo}</h3>
-                        <p className="mt-1.5 leading-relaxed text-tenue">{texto}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+              <section id="como-funciona" className="scroll-mt-20 py-8 lg:py-10">
+                <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Cómo funciona</h2>
+                <PasosInteractivos />
               </section>
 
               {/* 5. Confianza */}
-              <section id="escena-confianza" className="py-16 lg:py-32">
-                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Borrón y cuenta nueva, con respaldo</h2>
-                <dl className="mt-10 grid grid-cols-3 gap-4">
+              <section id="escena-confianza" className="py-8 lg:py-10">
+                <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Borrón y cuenta nueva, con respaldo</h2>
+                <dl className="mt-6 grid grid-cols-3 gap-3">
                   {cifras.map(({ valor, etiqueta, prefijo }) => (
-                    <div key={etiqueta}>
-                      <dt className="sr-only">{etiqueta}</dt>
-                      <dd className="text-3xl font-semibold tracking-tight text-marino tabular-nums lg:text-5xl">
+                    <div key={etiqueta} className="flex flex-col-reverse justify-end rounded-2xl border border-linea/80 bg-white p-3 shadow-[0_1px_2px_rgb(11_31_58/0.05)] lg:p-4">
+                      <dt className="mt-1 text-xs leading-snug text-tenue lg:text-sm">{etiqueta}</dt>
+                      <dd className="text-2xl font-semibold tracking-tight text-marino tabular-nums lg:text-4xl">
                         {prefijo}<span data-contador={valor}>{valor.toLocaleString("es-CL")}</span>
                       </dd>
-                      <p aria-hidden="true" className="mt-1 text-sm leading-snug text-tenue">{etiqueta}</p>
                     </div>
                   ))}
                 </dl>
-                {contadores.ejemplo && <p className="mt-3 text-xs text-tenue">Cifras de ejemplo.</p>}
+                {contadores.ejemplo && <p className="mt-2 text-xs text-tenue">Cifras de ejemplo.</p>}
 
-                <ul className="mt-10 grid gap-3">
+                <ul className="-mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0">
                   {testimonios.map((t) => (
-                    <li key={t.nombre} data-revelar className="rounded-2xl bg-fondo p-5">
-                      <blockquote className="leading-relaxed text-marino">“{t.texto}”</blockquote>
-                      <p className="mt-2 text-sm text-tenue">
+                    <li key={t.nombre} className="w-[80%] shrink-0 snap-start rounded-2xl bg-fondo p-4 lg:w-auto lg:last:col-span-2">
+                      <blockquote className="text-sm leading-relaxed text-marino">“{t.texto}”</blockquote>
+                      <p className="mt-2 text-xs text-tenue">
                         {t.nombre}
-                        {t.ejemplo && <span className="ml-2 rounded-full border border-linea bg-white px-2 py-0.5 text-xs">Ejemplo</span>}
+                        {t.ejemplo && <span className="ml-1.5 rounded-full border border-linea bg-white px-1.5 py-0.5">Ejemplo</span>}
                       </p>
                     </li>
                   ))}
                 </ul>
 
-                <ul className="mt-8 grid gap-3 text-sm font-medium text-marino sm:grid-cols-2">
-                  <li className="flex items-center gap-2"><IconoBalanza className="size-5 text-limpio" />Respaldo legal</li>
-                  <li className="flex items-center gap-2"><IconoEscudo className="size-5 text-limpio" />100% confidencial</li>
+                <ul className="mt-3 grid grid-cols-2 gap-3 text-sm font-medium text-marino">
+                  <li className="flex items-center gap-2 rounded-2xl border border-linea/80 bg-white p-3"><IconoBalanza className="size-5 shrink-0 text-limpio" />Respaldo legal</li>
+                  <li className="flex items-center gap-2 rounded-2xl border border-linea/80 bg-white p-3"><IconoEscudo className="size-5 shrink-0 text-limpio" />100% confidencial</li>
                 </ul>
               </section>
 
               {/* 6. Transición */}
-              <section id="escena-turno" className="py-16 lg:min-h-[170svh] lg:pt-[30svh] lg:pb-0">
+              <section id="escena-turno" className="py-8 lg:min-h-[115svh] lg:pt-[18svh] lg:pb-0">
                 <div className="lg:sticky lg:top-[34svh]">
-                  <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Ahora es tu turno</h2>
-                  <p className="mt-4 max-w-md text-lg leading-relaxed text-tenue">Tu solicitud empieza en la tarjeta. Toma 3 minutos y un abogado revisa tu caso en 24 horas.</p>
+                  <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Ahora es tu turno</h2>
+                  <p className="mt-3 max-w-md leading-relaxed text-tenue">Toma 3 minutos y un abogado revisa tu caso en 24 horas.</p>
                 </div>
               </section>
             </div>
