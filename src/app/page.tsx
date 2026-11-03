@@ -14,16 +14,19 @@ const SERVICIOS = [
   {
     titulo: "Antecedentes comerciales y financieros",
     texto: "DICOM, deuda castigada e informes comerciales.",
+    logro: "Deuda y morosidad",
     Icono: IconoDocumento,
   },
   {
     titulo: "Antecedentes penales",
     texto: "Revisión de requisitos, preparación de antecedentes y seguimiento hasta el resultado.",
+    logro: "Antecedente penal",
     Icono: IconoEscudo,
   },
   {
     titulo: "Gestión legal",
     texto: "Vía administrativa, vía judicial y representación completa.",
+    logro: "Informe financiero",
     Icono: IconoBalanza,
   },
 ];
@@ -97,13 +100,14 @@ export default async function Inicio() {
       <Navbar logoUrl={config.logo_url} />
 
       <main>
-        <div id="historia" className="relative pt-14 lg:pt-0">
+        <div id="historia" className="relative overflow-x-clip pt-14 lg:pt-0">
           <Escenario />
 
           <div className="mx-auto max-w-[77.5rem] px-4 lg:px-8">
             <div className="lg:w-[46%]">
               {/* 1. Hero */}
               <section id="inicio" className="relative flex min-h-[calc(100svh-13rem)] flex-col justify-start pt-3 pb-16 lg:min-h-svh lg:justify-center lg:py-24">
+                <div data-hero-texto>
                 <h1 className="text-[3.25rem] leading-[0.98] font-semibold tracking-[-0.035em] text-marino sm:text-7xl lg:text-[5.5rem]">
                   <span className="palabra" style={{ "--i": 0 } as React.CSSProperties}>ELIMINA</span>{" "}
                   <span className="palabra" style={{ "--i": 1 } as React.CSSProperties}>TU</span>{" "}
@@ -122,17 +126,20 @@ export default async function Inicio() {
                 <p className="aparece mt-6 text-[0.8rem] text-tenue lg:mt-8 lg:text-sm" style={{ "--retraso": "0.35s" } as React.CSSProperties}>
                   100% confidencial · Respaldo legal · Respuesta en 24 h
                 </p>
-                <div aria-hidden="true" className="aparece absolute bottom-8 left-0 hidden items-center gap-3 text-xs tracking-wide text-tenue lg:flex" style={{ "--retraso": "0.8s" } as React.CSSProperties}>
-                  <span className="relative h-7 w-4 rounded-full border border-linea">
-                    <span className="desliza-punto absolute top-1.5 left-1/2 -ml-0.5 size-1 rounded-full bg-marino" />
-                  </span>
-                  Desliza
+                </div>
+                <div data-desliza aria-hidden="true" className="absolute bottom-8 left-0 hidden lg:block">
+                  <div className="aparece flex items-center gap-3 text-xs tracking-wide text-tenue" style={{ "--retraso": "0.8s" } as React.CSSProperties}>
+                    <span className="relative h-7 w-4 rounded-full border border-linea">
+                      <span className="desliza-punto absolute top-1.5 left-1/2 -ml-0.5 size-1 rounded-full bg-marino" />
+                    </span>
+                    Desliza
+                  </div>
                 </div>
               </section>
 
               {/* 2. El problema */}
               <section id="escena-problema" className="py-16 lg:flex lg:min-h-[90svh] lg:flex-col lg:justify-center lg:py-24">
-                <h2 data-revelar className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Tu historial te está cerrando puertas</h2>
+                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Tu historial te está cerrando puertas</h2>
                 <p data-revelar className="mt-5 max-w-md text-lg leading-relaxed text-tenue">
                   Un crédito rechazado, un arriendo que no sale, una oferta de trabajo que no avanza. Todo por un registro que quizás ya se puede eliminar.
                 </p>
@@ -140,11 +147,18 @@ export default async function Inicio() {
 
               {/* 3. Servicios */}
               <section id="servicios" className="scroll-mt-20 py-16 lg:py-24">
-                <h2 data-revelar className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Lo que te frena, lo eliminamos</h2>
+                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Lo que te frena, lo eliminamos</h2>
                 <div className="mt-10 grid gap-5 lg:mt-20 lg:gap-[28svh]">
-                  {SERVICIOS.map(({ titulo, texto, Icono }) => (
-                    <article key={titulo} data-servicio className="rounded-2xl border border-linea/80 bg-white p-6 shadow-[0_1px_2px_rgb(11_31_58/0.04)] lg:p-8">
-                      <Icono className="size-6 text-marino" />
+                  {SERVICIOS.map(({ titulo, texto, logro, Icono }) => (
+                    <article key={titulo} data-servicio className="relative rounded-2xl border border-linea/80 bg-white p-6 shadow-[0_1px_2px_rgb(11_31_58/0.04)] lg:p-8">
+                      <span data-servicio-borde aria-hidden="true" className="pointer-events-none absolute -inset-px rounded-2xl border border-limpio/60 opacity-0" />
+                      <div className="flex items-center justify-between gap-3">
+                        <Icono className="size-6 text-marino" />
+                        <span data-servicio-ok aria-hidden="true" className="flex items-center gap-1 rounded-full bg-limpio-claro px-2.5 py-1 text-xs font-medium text-limpio-oscuro opacity-0">
+                          <IconoCheck className="size-3.5" strokeWidth={2.2} />
+                          {logro}
+                        </span>
+                      </div>
                       <h3 className="mt-4 text-xl font-semibold tracking-tight text-marino lg:text-2xl">{titulo}</h3>
                       <p className="mt-2 leading-relaxed text-tenue">{texto}</p>
                     </article>
@@ -154,13 +168,16 @@ export default async function Inicio() {
 
               {/* 4. Cómo funciona */}
               <section id="como-funciona" className="scroll-mt-20 py-16 lg:py-32">
-                <h2 data-revelar className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Cómo funciona</h2>
+                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Cómo funciona</h2>
                 <ol data-lista-pasos className="relative mt-10 grid gap-10 lg:mt-20 lg:gap-[18svh]">
                   <span aria-hidden="true" className="absolute top-2 bottom-2 left-[1.0625rem] w-px bg-linea" />
                   <span aria-hidden="true" data-linea-progreso className="absolute top-2 bottom-2 left-[1.0625rem] w-px origin-top scale-y-0 bg-limpio" />
                   {PASOS.map(({ titulo, texto }, i) => (
                     <li key={titulo} data-paso className="relative flex gap-5">
-                      <span className="relative grid size-9 shrink-0 place-items-center rounded-full border border-linea bg-white text-xs font-semibold text-marino tabular-nums">0{i + 1}</span>
+                      <span className="relative grid size-9 shrink-0 place-items-center rounded-full border border-linea bg-white text-xs font-semibold text-marino tabular-nums">
+                        0{i + 1}
+                        <span data-paso-punto aria-hidden="true" className="absolute -inset-px grid place-items-center rounded-full bg-limpio text-white opacity-0">0{i + 1}</span>
+                      </span>
                       <div data-revelar>
                         <h3 className="text-xl font-semibold tracking-tight text-marino lg:text-2xl">{titulo}</h3>
                         <p className="mt-1.5 leading-relaxed text-tenue">{texto}</p>
@@ -172,7 +189,7 @@ export default async function Inicio() {
 
               {/* 5. Confianza */}
               <section id="escena-confianza" className="py-16 lg:py-32">
-                <h2 data-revelar className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Borrón y cuenta nueva, con respaldo</h2>
+                <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Borrón y cuenta nueva, con respaldo</h2>
                 <dl className="mt-10 grid grid-cols-3 gap-4">
                   {cifras.map(({ valor, etiqueta, prefijo }) => (
                     <div key={etiqueta}>
@@ -207,7 +224,7 @@ export default async function Inicio() {
               {/* 6. Transición */}
               <section id="escena-turno" className="py-16 lg:flex lg:min-h-[170svh] lg:items-start lg:pt-[30svh]">
                 <div data-texto-turno>
-                  <h2 className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Ahora es tu turno</h2>
+                  <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Ahora es tu turno</h2>
                   <p className="mt-4 text-lg text-tenue">Sigue bajando: tu solicitud empieza en la tarjeta.</p>
                 </div>
               </section>
