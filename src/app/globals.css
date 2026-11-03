@@ -114,17 +114,44 @@ html.lenis body {
     transform: translateX(-14px);
   }
 }
-@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  .flotacion {
-    animation: flotacion 4.5s ease-in-out infinite alternate;
+/* ─── Radar de fondo ─── */
+.radar-mascara {
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+}
+.radar-cono-rojo {
+  background: conic-gradient(from 0deg, transparent 0 285deg, rgb(168 67 63 / 0.1) 360deg);
+}
+.radar-cono-verde {
+  background: conic-gradient(from 0deg, transparent 0 285deg, rgb(7 135 95 / 0.13) 360deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .radar-barrido {
+    will-change: transform;
+    animation: radar-gira 7s linear infinite;
+  }
+  .radar-punto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: inherit;
+    animation: radar-eco 2.6s ease-out infinite;
   }
 }
-@keyframes flotacion {
+@keyframes radar-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes radar-eco {
   from {
-    transform: translateY(-7px);
+    opacity: 0.55;
+    transform: scale(1);
   }
   to {
-    transform: translateY(7px);
+    opacity: 0;
+    transform: scale(4.5);
   }
 }
 
@@ -263,7 +290,8 @@ html.lenis body {
     transition-duration: 0.01ms !important;
   }
   .pulso::before,
-  .desliza-punto {
+  .desliza-punto,
+  .radar-barrido {
     display: none;
   }
 }

@@ -12,7 +12,7 @@ import { CabeceraWizard } from "../wizard/Wizard";
 export function ReversoWizard() {
   const b = useBorrador();
   return (
-    <div data-reverso inert aria-hidden="true" className="perspectiva absolute inset-x-0 top-[5.5rem] hidden justify-center px-4 lg:flex">
+    <div data-reverso inert aria-hidden="true" className="perspectiva absolute top-[5.5rem] right-0 hidden w-1/2 justify-center px-4 lg:flex">
       <div data-reverso-cara className="cara tarjeta-wizard w-full max-w-[35rem] rounded-3xl border border-linea/70 bg-white p-8 opacity-0 shadow-tarjeta">
         <CabeceraWizard paso={b.paso} />
         {b.paso === 1 && <PasoDatos prefijo="reverso" />}

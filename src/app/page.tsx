@@ -104,7 +104,7 @@ export default async function Inicio() {
           <Escenario />
 
           <div className="mx-auto max-w-[77.5rem] px-4 lg:px-8">
-            <div className="lg:w-[46%]">
+            <div className="lg:relative lg:z-20 lg:w-[46%]">
               {/* 1. Hero */}
               <section id="inicio" className="relative flex min-h-[calc(100svh-13rem)] flex-col justify-start pt-3 pb-16 lg:min-h-svh lg:justify-center lg:py-24">
                 <div data-hero-texto>
@@ -222,10 +222,10 @@ export default async function Inicio() {
               </section>
 
               {/* 6. Transición */}
-              <section id="escena-turno" className="py-16 lg:flex lg:min-h-[170svh] lg:items-start lg:pt-[30svh]">
-                <div data-texto-turno>
+              <section id="escena-turno" className="py-16 lg:min-h-[170svh] lg:pt-[30svh] lg:pb-0">
+                <div className="lg:sticky lg:top-[34svh]">
                   <h2 data-titulo className="text-4xl leading-[1.05] font-semibold tracking-tight text-marino lg:text-6xl">Ahora es tu turno</h2>
-                  <p className="mt-4 text-lg text-tenue">Sigue bajando: tu solicitud empieza en la tarjeta.</p>
+                  <p className="mt-4 max-w-md text-lg leading-relaxed text-tenue">Tu solicitud empieza en la tarjeta. Toma 3 minutos y un abogado revisa tu caso en 24 horas.</p>
                 </div>
               </section>
             </div>
@@ -233,12 +233,16 @@ export default async function Inicio() {
         </div>
 
         {/* El wizard real. En desktop se superpone al escenario y aparece al terminar el giro. */}
-        <section id="solicitud" aria-label="Solicitud" className="relative z-30 min-h-svh px-4 pb-20 lg:pt-[5.5rem] lg:pointer-events-none">
+        <section id="solicitud" aria-label="Solicitud" className="relative z-30 min-h-svh px-4 pb-20 lg:px-0 lg:pt-[5.5rem] lg:pointer-events-none">
           <div id="solicitud-inicio" />
-          <div id="solicitud-tarjeta" className="mx-auto w-full max-w-[35rem] rounded-3xl border border-linea/70 bg-white p-5 shadow-tarjeta sm:p-8 lg:pointer-events-auto">
-            <Wizard servicio={config.servicio_nombre} precio={config.precio_clp} />
+          <div className="mx-auto max-w-[77.5rem]">
+            <div className="lg:ml-auto lg:w-1/2 lg:px-4">
+              <div id="solicitud-tarjeta" className="mx-auto w-full max-w-[35rem] rounded-3xl border border-linea/70 bg-white p-5 shadow-tarjeta sm:p-8 lg:pointer-events-auto">
+                <Wizard servicio={config.servicio_nombre} precio={config.precio_clp} />
+              </div>
+              <p className="mx-auto mt-5 max-w-[35rem] text-center text-xs leading-relaxed text-tenue">{NOTA_LEGAL}</p>
+            </div>
           </div>
-          <p className="mx-auto mt-5 max-w-[35rem] text-center text-xs leading-relaxed text-tenue">{NOTA_LEGAL}</p>
         </section>
 
         {/* 7. Preguntas frecuentes */}

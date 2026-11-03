@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { IconoBanco, IconoCandado, IconoCandadoAbierto, IconoCasa, IconoMaletin, IconoTarjeta } from "../iconos";
+import { Radar } from "./Radar";
 import { ReversoCompacto, ReversoWizard } from "./Reverso";
 
 const FILAS = [
@@ -49,18 +50,16 @@ function Medidor() {
 export function TarjetaInforme() {
   return (
     <div className="relative w-full max-w-[25rem] lg:w-[25rem]" data-tarjeta>
-      <div data-camara>
+      <div>
         <div className="tarjeta-entra">
-          <div className="flotacion perspectiva">
+          <div className="perspectiva">
             <div data-inclinacion className="relative" style={{ transformStyle: "preserve-3d" }}>
               <div data-frente className="cara relative">
                 <div data-destello-caja aria-hidden="true" className="absolute -inset-3 -z-10 lg:-inset-10">
                   <div data-destello className="size-full rounded-[3rem] bg-limpio/30 opacity-0 blur-2xl" />
                 </div>
-                <div data-onda aria-hidden="true" className="absolute inset-0 -z-10 rounded-2xl border border-limpio/50 opacity-0 lg:rounded-[1.75rem]" />
 
                 <div
-                  data-sacudida
                   role="img"
                   aria-label="Ilustración de un informe comercial: pasa de estado moroso, con cuatro antecedentes, a historial limpio."
                   className="relative overflow-hidden rounded-2xl border border-linea/70 bg-white shadow-tarjeta lg:rounded-[1.75rem]"
@@ -109,7 +108,6 @@ export function TarjetaInforme() {
                     </span>
                   ))}
 
-                  <div data-brillo aria-hidden="true" className="pointer-events-none absolute -top-1/2 -left-1/2 hidden size-[120%] rounded-full bg-[radial-gradient(closest-side,rgb(255_255_255/0.14),transparent)] lg:block" />
                 </div>
 
                 {/* Puertas que el historial mantiene cerradas */}
@@ -151,17 +149,13 @@ export function Escenario() {
       {/* Mobile: compacta y fija arriba. Desktop: columna derecha, a toda la altura de la historia. */}
       <div data-escenario className="pointer-events-none sticky top-14 z-20 bg-linear-to-b from-white from-85% to-white/0 px-4 pt-3 pb-7 lg:absolute lg:inset-0 lg:top-0 lg:z-10 lg:bg-none lg:p-0">
         <div className="lg:sticky lg:top-0 lg:h-svh">
-          {/* El ambiente de la página acompaña a la historia: de rojo a verde */}
-          <div data-ambiente-caja aria-hidden="true" className="absolute inset-0 -z-10 hidden lg:block">
-            <div data-ambiente-rojo className="absolute inset-0 bg-[radial-gradient(55%_65%_at_76%_50%,rgb(168_67_63/0.11),transparent_72%)]" />
-            <div data-ambiente-verde className="absolute inset-0 bg-[radial-gradient(55%_65%_at_76%_50%,rgb(7_135_95/0.13),transparent_72%)] opacity-0" />
-          </div>
           <div className="relative mx-auto h-full max-w-[77.5rem]">
             <div className="flex justify-center lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 lg:items-center" data-columna-tarjeta>
+              <Radar />
               <TarjetaInforme />
             </div>
+            <ReversoWizard />
           </div>
-          <ReversoWizard />
         </div>
       </div>
     </>
