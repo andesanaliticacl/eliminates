@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-marino: #0b1f3a;
+  --color-marino-claro: #17335c;
+  --color-tenue: #5b6779;
+  --color-linea: #e3e6eb;
+  --color-fondo: #f5f6f8;
+  --color-deuda: #a8433f;
+  --color-limpio: #07875f;
+  --color-limpio-claro: #e6f5ef;
+  --color-limpio-oscuro: #05664a;
+  --color-ambar: #d6a23c;
+
+  --spacing-13: 3.25rem;
+
+  --shadow-tarjeta: 0 1px 2px rgb(11 31 58 / 0.04), 0 12px 32px -8px rgb(11 31 58 / 0.1), 0 40px 80px -32px rgb(11 31 58 / 0.14);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: auto;
+}
+
+body {
+  background: #fff;
+  color: var(--color-marino);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-marino);
+  outline-offset: 2px;
+}
+
+button:not(:disabled),
+summary {
+  cursor: pointer;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* ─── Titular del hero: palabra por palabra, sin JS para no retrasar el LCP ─── */
+.palabra {
+  display: inline-block;
+  animation: palabra-entra 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 90ms);
+}
+/* 0.01 y no 0: Chrome no considera para LCP un texto que parte invisible. */
+@keyframes palabra-entra {
+  from {
+    opacity: 0.01;
+    transform: translateY(0.35em);
+  }
+}
+
+.aparece {
+  animation: aparece 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--retraso, 0.2s);
+}
+@keyframes aparece {
+  from {
+    opacity: 0.01;
+    transform: translateY(12px);
+  }
+}
+
+/* ─── Indicador "Desliza" ─── */
+.desliza-punto {
+  animation: desliza 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes desliza {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* ─── Botón de WhatsApp: pulso suave cada pocos segundos ─── */
+.pulso::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-limpio);
+  animation: pulso 5s ease-out infinite;
+  z-index: -1;
+}
+@keyframes pulso {
+  0%,
+  70% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25, 1.6);
+  }
+}
+
+/* ─── Wizard ─── */
+.wizard-entra-derecha {
+  animation: entra-derecha 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.wizard-entra-izquierda {
+  animation: entra-izquierda 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes entra-derecha {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+@keyframes entra-izquierda {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+
+.dibujar-circulo {
+  stroke-dasharray: 189;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  animation: dibujar-circulo 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+.dibujar-check {
+  stroke-dasharray: 40;
+  animation: dibujar-check 0.45s 0.55s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes dibujar-circulo {
+  from {
+    stroke-dashoffset: 189;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes dibujar-check {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ─── Preguntas frecuentes ─── */
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+.faq[open] .faq-signo {
+  transform: rotate(45deg);
+}
+
+/* ─── Escenario de la tarjeta ─── */
+.perspectiva {
+  perspective: 1400px;
+}
+.cara {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+
+/*
+ * En desktop la tarjeta gira y su reverso se convierte en el wizard real: al terminar el giro
+ * ambos coinciden en pantalla. data-anim lo pone un script en <head> antes de pintar, así este
+ * solapamiento no provoca saltos de layout. Sin JS o con movimiento reducido, nada de esto aplica.
+ */
+@media (min-width: 1024px) {
+  html[data-anim] #solicitud {
+    margin-top: -100svh;
+  }
+  html[data-anim]:not([data-wizard]) #solicitud-tarjeta {
+    visibility: hidden;
+  }
+  html[data-anim][data-wizard] [data-reverso] {
+    visibility: hidden;
+  }
+  html:not([data-anim]) [data-reverso] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .pulso::before,
+  .desliza-punto {
+    display: none;
+  }
+}
