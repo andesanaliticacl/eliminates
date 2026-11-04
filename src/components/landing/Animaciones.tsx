@@ -276,7 +276,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
     $$("[data-titulo]").forEach((titulo) => {
       gsap.fromTo(
         titulo.querySelectorAll("[data-palabra]"),
-        { yPercent: 115 },
+        { yPercent: 135 },
         { yPercent: 0, duration: 0.9, stagger: 0.05, ease: "power4.out", scrollTrigger: { trigger: titulo, start: "top 92%", toggleActions: "play none none reverse" } },
       );
     });
