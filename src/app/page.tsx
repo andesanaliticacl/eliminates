@@ -92,7 +92,7 @@ export default async function Inicio() {
                 <h1 className="text-[3.25rem] leading-[0.98] font-semibold tracking-[-0.035em] text-marino sm:text-7xl lg:text-[5.5rem]">
                   <span className="palabra" style={{ "--i": 0 } as React.CSSProperties}>ELIMINA</span>{" "}
                   <span className="palabra" style={{ "--i": 1 } as React.CSSProperties}>TU</span>{" "}
-                  <span className="palabra" style={{ "--i": 2 } as React.CSSProperties}>DICOM</span>
+                  <span className="palabra tachar" style={{ "--i": 2 } as React.CSSProperties}>DICOM</span>
                 </h1>
                 <p className="aparece mt-5 max-w-[34rem] text-[1.05rem] leading-relaxed text-tenue lg:mt-7 lg:text-xl" style={{ "--retraso": "0.15s" } as React.CSSProperties}>
                   Eliminamos deuda castigada, informes comerciales, financieros y antecedentes penales con gestión legal administrativa o judicial. Borrón y cuenta nueva.
@@ -105,7 +105,11 @@ export default async function Inicio() {
                   <Cta href="#como-funciona" variante="secundario" offset={-80} className="h-13 px-7 text-base">Cómo funciona</Cta>
                 </div>
                 <p className="aparece mt-6 text-[0.8rem] text-tenue lg:mt-8 lg:text-sm" style={{ "--retraso": "0.35s" } as React.CSSProperties}>
-                  100% confidencial · Respaldo legal · Respuesta en 24 h
+                  <span className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                    <span className="flex items-center gap-1.5"><IconoEscudo className="size-4 text-limpio" />100% confidencial</span>
+                    <span className="flex items-center gap-1.5"><IconoBalanza className="size-4 text-limpio" />Respaldo legal</span>
+                    <span className="flex items-center gap-1.5"><IconoCheck className="size-4 text-limpio" />Respuesta en 24 h</span>
+                  </span>
                 </p>
                 </div>
                 <div data-desliza aria-hidden="true" className="absolute bottom-8 left-0 hidden lg:block">
@@ -120,10 +124,11 @@ export default async function Inicio() {
 
               {/* 2. El problema */}
               <section id="escena-problema" className="py-8 lg:py-10">
+                <p className="etiqueta-seccion">El problema</p>
                 <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Tu historial te está cerrando puertas</h2>
                 <ul className="mt-6 grid grid-cols-2 gap-3">
                   {PUERTAS.map(({ nombre, texto, Icono }) => (
-                    <li key={nombre} data-revelar className="rounded-2xl border border-linea/80 bg-white p-4 shadow-[0_1px_2px_rgb(11_31_58/0.05)] lg:p-5">
+                    <li key={nombre} data-revelar className="tarjeta-luz rounded-2xl border border-linea/80 bg-white p-4 shadow-[0_1px_2px_rgb(11_31_58/0.05)] lg:p-5">
                       <div className="flex items-center justify-between">
                         <Icono className="size-5 text-marino" />
                         <span className="relative size-5" aria-hidden="true">
@@ -140,6 +145,7 @@ export default async function Inicio() {
 
               {/* 3. Servicios: la persona limpia su propio informe */}
               <section id="servicios" className="scroll-mt-20 py-8 lg:py-10">
+                <p className="etiqueta-seccion">La solución</p>
                 <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Lo que te frena, lo eliminamos</h2>
                 <p className="mt-3 text-tenue">Toca lo que te aplica y mira cómo cambia tu informe.</p>
                 <SelectorAntecedentes />
@@ -147,16 +153,18 @@ export default async function Inicio() {
 
               {/* 4. Cómo funciona */}
               <section id="como-funciona" className="scroll-mt-20 py-8 lg:py-10">
+                <p className="etiqueta-seccion">El proceso</p>
                 <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Cómo funciona</h2>
                 <PasosInteractivos />
               </section>
 
               {/* 5. Confianza */}
               <section id="escena-confianza" className="py-8 lg:py-10">
+                <p className="etiqueta-seccion">Respaldo</p>
                 <h2 data-titulo className="text-3xl leading-[1.08] font-semibold tracking-tight text-marino lg:text-[2.75rem]">Borrón y cuenta nueva, con respaldo</h2>
                 <dl className="mt-6 grid grid-cols-3 gap-3">
                   {cifras.map(({ valor, etiqueta, prefijo }) => (
-                    <div key={etiqueta} className="flex flex-col-reverse justify-end rounded-2xl border border-linea/80 bg-white p-3 shadow-[0_1px_2px_rgb(11_31_58/0.05)] lg:p-4">
+                    <div key={etiqueta} className="tarjeta-luz flex flex-col-reverse justify-end rounded-2xl border border-linea/80 bg-white p-3 shadow-[0_1px_2px_rgb(11_31_58/0.05)] lg:p-4">
                       <dt className="mt-1 text-xs leading-snug text-tenue lg:text-sm">{etiqueta}</dt>
                       <dd className="text-2xl font-semibold tracking-tight text-marino tabular-nums lg:text-4xl">
                         {prefijo}<span data-contador={valor}>{valor.toLocaleString("es-CL")}</span>
@@ -212,9 +220,9 @@ export default async function Inicio() {
         <section id="preguntas" className="relative z-30 scroll-mt-20 bg-white px-4 py-20 lg:py-32">
           <div className="mx-auto max-w-3xl">
             <h2 className="text-4xl font-semibold tracking-tight text-marino lg:text-5xl">Preguntas frecuentes</h2>
-            <div className="mt-10 border-t border-linea">
+            <div className="mt-10 grid gap-2.5">
               {PREGUNTAS.map(({ p, r }) => (
-                <details key={p} className="faq border-b border-linea">
+                <details key={p} className="faq tarjeta-luz rounded-2xl border border-linea/80 bg-white px-5 shadow-[0_1px_2px_rgb(11_31_58/0.04)] lg:px-6">
                   <summary className="flex list-none items-center justify-between gap-6 py-5 text-lg font-medium text-marino">
                     {p}
                     <IconoMas className="faq-signo size-5 shrink-0 text-tenue transition-transform duration-300" />
@@ -227,7 +235,7 @@ export default async function Inicio() {
         </section>
 
         {/* 8. Cierre */}
-        <section className="relative z-30 bg-marino px-4 py-24 text-center lg:py-36">
+        <section className="cierre-radar relative z-30 overflow-hidden bg-marino px-4 py-24 text-center lg:py-36">
           <h2 className="mx-auto max-w-4xl text-4xl leading-[1.05] font-semibold tracking-tight text-white sm:text-6xl lg:text-7xl">
             Elimina tu DICOM. Borrón y cuenta nueva.
           </h2>

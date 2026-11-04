@@ -38,7 +38,7 @@ export function SelectorAntecedentes() {
               type="button"
               aria-pressed={activa}
               onClick={() => alternar(id)}
-              className={`flex min-h-32 flex-col rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow] duration-300 lg:min-h-36 lg:p-5 ${
+              className={`tarjeta-luz flex min-h-32 flex-col rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-300 active:scale-[0.98] lg:min-h-36 lg:p-5 ${
                 activa ? "border-limpio bg-limpio-claro" : "border-linea bg-white shadow-[0_1px_2px_rgb(11_31_58/0.05)] hover:border-marino/40 hover:shadow-md"
               }`}
             >
@@ -62,8 +62,15 @@ export function SelectorAntecedentes() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-tenue" aria-live="polite">
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-tenue" aria-live="polite">
           {total === 0 ? "Toca lo que te aplica." : `${total} de 4 seleccionados.`}
+          <button
+            type="button"
+            onClick={() => actualizarBorrador({ antecedentes: total === OPCIONES.length ? [] : OPCIONES.map((o) => o.id) })}
+            className="font-medium text-marino underline underline-offset-4 hover:text-marino-claro"
+          >
+            {total === OPCIONES.length ? "Quitar todos" : "Seleccionar todos"}
+          </button>
         </p>
         {total > 0 && (
           <Cta href="#solicitud" className="h-11 px-5 text-sm">

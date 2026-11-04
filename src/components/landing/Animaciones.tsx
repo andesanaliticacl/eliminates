@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import type { Antecedente } from "@/lib/tipos";
-import { antecedentesActuales } from "../wizard/borrador";
+import { actualizarBorrador, antecedentesActuales } from "../wizard/borrador";
 
 // Todo se carga de forma diferida: GSAP y Lenis no compiten con el primer pintado (Lighthouse móvil).
 //
@@ -88,6 +88,25 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   let llegoAConfianza = false;
   let estabaLimpio = false;
   let primeraVez = true;
+  let puertasVisibles = false;
+  let yaToco = false;
+
+  const riesgo = $("[data-riesgo]");
+  const pintarRiesgo = (limpio: boolean, eliminadas: number) => {
+    if (!riesgo) return;
+    const [nivel, texto, clases] = limpio
+      ? ["limpio", "Sin antecedentes", "bg-limpio-claro text-limpio-oscuro"]
+      : eliminadas >= 2
+        ? ["medio", "Riesgo medio", "bg-ambar/20 text-marino"]
+        : ["alto", "Riesgo alto", "bg-deuda/10 text-deuda"];
+    if (riesgo.dataset.riesgo === nivel) return;
+    riesgo.dataset.riesgo = nivel;
+    riesgo.textContent = texto;
+    riesgo.className = `rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold ${clases}`;
+  };
+  const pintarPista = () => {
+    gsap.to("[data-pista]", { autoAlpha: yaToco || puertasVisibles ? 0 : 1, duration: seg(0.3), overwrite: "auto" });
+  };
 
   const pintar = () => {
     const elegidas = antecedentesActuales();
@@ -99,6 +118,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
       const activa = limpio || elegidas.includes(id);
       if (activa) eliminadas += 1;
       const s = `[data-fila="${i}"]`;
+      $(s)?.setAttribute("aria-pressed", String(elegidas.includes(id)));
       gsap.to(`${s} [data-tachado]`, { scaleX: activa ? 1 : 0, duration: seg(0.4), ease: "power2.inOut", ...a });
       gsap.to(`${s} [data-fila-fondo]`, { scaleX: activa ? 1 : 0, duration: seg(0.5), delay: seg(activa ? 0.1 : 0), ease: "power3.out", ...a });
       gsap.to(`${s} [data-fila-etiqueta]`, { opacity: activa ? 0.7 : 1, duration: seg(0.3), ...a });
@@ -130,6 +150,9 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
     if (limpio && !estabaLimpio && !reducido) {
       gsap.fromTo("[data-radar-pulso]", { attr: { r: 120 }, opacity: 0.55 }, { attr: { r: 480 }, opacity: 0, duration: 1.4, ease: "power2.out", overwrite: "auto" });
     }
+    if (elegidas.length > 0) yaToco = true;
+    pintarRiesgo(limpio, eliminadas);
+    pintarPista();
     estabaLimpio = limpio;
     primeraVez = false;
   };
@@ -148,6 +171,26 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
     pintarSello();
   };
 
+  // Las filas del propio informe también se tocan: comparten la selección con las tarjetas
+  const alTocarFila = (e: Event) => {
+    const fila = (e.target as Element).closest<HTMLElement>("[data-fila]");
+    if (!fila) return;
+    const id = ORDEN_FILAS[Number(fila.dataset.fila)];
+    const elegidas = antecedentesActuales();
+    actualizarBorrador({ antecedentes: elegidas.includes(id) ? elegidas.filter((a) => a !== id) : [...elegidas, id] });
+  };
+  document.addEventListener("click", alTocarFila);
+
+  // Luz de las tarjetas: una sola escucha para toda la página
+  const moverLuz = (e: PointerEvent) => {
+    const tarjeta = (e.target as Element).closest?.<HTMLElement>(".tarjeta-luz");
+    if (!tarjeta) return;
+    const caja = tarjeta.getBoundingClientRect();
+    tarjeta.style.setProperty("--luz-x", `${e.clientX - caja.left}px`);
+    tarjeta.style.setProperty("--luz-y", `${e.clientY - caja.top}px`);
+  };
+  document.addEventListener("pointermove", moverLuz, { passive: true });
+
   window.addEventListener("eliminate:seleccion", pintar);
   window.addEventListener("eliminate:sello", alCambiarSello);
   pintar();
@@ -159,6 +202,8 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
       start: "top 75%",
       end: "max",
       onToggle: (self) => {
+        puertasVisibles = self.isActive;
+        pintarPista();
         gsap.to("[data-chip]", { opacity: self.isActive ? 1 : 0, y: self.isActive ? 0 : 8, duration: seg(0.45), stagger: seg(0.08), ease: "power2.out", overwrite: "auto" });
       },
     });
@@ -198,6 +243,8 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   });
 
   const quitarEventos = () => {
+    document.removeEventListener("click", alTocarFila);
+    document.removeEventListener("pointermove", moverLuz);
     window.removeEventListener("eliminate:seleccion", pintar);
     window.removeEventListener("eliminate:sello", alCambiarSello);
   };

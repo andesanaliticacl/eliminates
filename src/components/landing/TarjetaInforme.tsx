@@ -38,10 +38,19 @@ function Medidor() {
         <g data-aguja style={{ transformBox: "view-box", transformOrigin: "50px 50px", transform: "rotate(-90deg)" }}>
           <line x1="50" y1="50" x2="50" y2="17" stroke="var(--color-marino)" strokeWidth="2.2" strokeLinecap="round" />
         </g>
-        <circle cx="50" cy="50" r="3.600" fill="var(--color-marino)" />
+        <g stroke="var(--color-marino)" strokeOpacity="0.28" strokeWidth="0.5">
+          {Array.from({ length: 13 }, (_, i) => {
+            const rad = ((-90 + i * 15 - 90) * Math.PI) / 180;
+            return <line key={i} x1={(50 + 36 * Math.cos(rad)).toFixed(2)} y1={(50 + 36 * Math.sin(rad)).toFixed(2)} x2={(50 + 38.5 * Math.cos(rad)).toFixed(2)} y2={(50 + 38.5 * Math.sin(rad)).toFixed(2)} />;
+          })}
+        </g>
+        <circle cx="50" cy="50" r="4.4" fill="#fff" stroke="var(--color-marino)" strokeWidth="1.6" />
       </svg>
       <p className="mt-0.5 text-center text-[0.65rem] leading-none text-tenue lg:mt-2 lg:text-xs">
         Puntaje <span data-puntaje className="font-semibold text-marino tabular-nums">300</span>
+      </p>
+      <p className="mt-2 hidden justify-center lg:flex">
+        <span data-riesgo="alto" className="rounded-full bg-deuda/10 px-2.5 py-0.5 text-[0.68rem] font-semibold text-deuda">Riesgo alto</span>
       </p>
     </div>
   );
@@ -59,10 +68,13 @@ export function TarjetaInforme() {
                   <div data-destello className="size-full rounded-[3rem] bg-limpio/30 opacity-0 blur-2xl" />
                 </div>
 
+                <div aria-hidden="true" className="absolute inset-0 -z-10 hidden -rotate-[2.5deg] rounded-[1.75rem] border border-linea/70 bg-white/80 shadow-sm lg:block" />
+                <div aria-hidden="true" className="absolute inset-0 -z-10 hidden rotate-[1.8deg] rounded-[1.75rem] border border-linea/70 bg-white/90 shadow-sm lg:block" />
+
                 <div
-                  role="img"
-                  aria-label="Ilustración de un informe comercial: pasa de estado moroso, con cuatro antecedentes, a historial limpio."
-                  className="relative overflow-hidden rounded-2xl border border-linea/70 bg-white shadow-tarjeta lg:rounded-[1.75rem]"
+                  role="group"
+                  aria-label="Informe comercial de ejemplo. Toca una fila para eliminarla."
+                  className="relative overflow-hidden rounded-2xl border border-linea/70 bg-white shadow-tarjeta ring-1 ring-white/60 lg:rounded-[1.75rem]"
                 >
                   {/* El verde barre sobre el rojo: se anima solo transform */}
                   <div className="relative flex h-8 items-center justify-between overflow-hidden bg-deuda px-3.5 text-white lg:h-16 lg:px-6">
@@ -79,9 +91,9 @@ export function TarjetaInforme() {
                     <ul className="min-w-0 flex-1 lg:mt-5">
                       {FILAS.map((fila, i) => (
                         <li key={fila.etiqueta} className="fila-entra" style={{ "--i": i } as CSSProperties}>
-                          <div data-fila={i} className="relative border-t border-linea/70">
-                            <div data-fila-fondo className="absolute inset-0 -mx-1 origin-left scale-x-0 rounded bg-limpio-claro lg:-mx-2" />
-                            <div className="relative flex items-center justify-between gap-2 py-[0.2rem] lg:py-2.5">
+                          <button type="button" data-fila={i} aria-pressed="false" className="fila-informe pointer-events-auto relative block w-full border-t border-linea/70 text-left">
+                            <span data-fila-fondo className="absolute inset-0 -mx-1 block origin-left scale-x-0 rounded bg-limpio-claro lg:-mx-2" />
+                            <span className="relative flex items-center justify-between gap-2 py-[0.3rem] lg:py-2.5">
                               <span className="relative min-w-0 truncate text-[0.68rem] text-marino lg:text-sm">
                                 <span data-fila-etiqueta>{fila.etiqueta}</span>
                                 <span data-tachado className="absolute inset-x-0 top-1/2 h-px origin-left scale-x-0 bg-marino lg:h-[1.5px]" />
@@ -90,12 +102,14 @@ export function TarjetaInforme() {
                                 <span data-fila-valor className="col-start-1 row-start-1 text-deuda">{fila.valor}</span>
                                 <span data-fila-eliminado className="col-start-1 row-start-1 text-limpio-oscuro opacity-0">ELIMINADO</span>
                               </span>
-                            </div>
-                          </div>
+                            </span>
+                          </button>
                         </li>
                       ))}
                     </ul>
                   </div>
+
+                  <p className="hidden border-t border-linea/70 px-6 py-2.5 text-center text-[0.68rem] text-tenue lg:block">Informe de ejemplo, solo ilustrativo</p>
 
                   {SELLOS.map((sello, i) => (
                     <span
@@ -109,6 +123,13 @@ export function TarjetaInforme() {
                   ))}
 
                 </div>
+
+                <p data-pista aria-hidden="true" className="absolute inset-x-0 -bottom-4 flex justify-center lg:-bottom-12">
+                  <span className="flex items-center gap-1.5 rounded-full bg-marino px-3 py-1 text-[0.68rem] font-medium whitespace-nowrap text-white shadow-md lg:px-3.5 lg:py-1.5 lg:text-xs">
+                    <span className="pista-punto size-1.5 rounded-full bg-[#5fe0b4]" />
+                    Toca una fila para eliminarla
+                  </span>
+                </p>
 
                 {/* Puertas que el historial mantiene cerradas */}
                 <ul aria-hidden="true" className="absolute inset-x-0 -bottom-4 flex justify-center gap-1 lg:static lg:contents">

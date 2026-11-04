@@ -4,8 +4,8 @@ import { useRef, type PointerEvent, type ReactNode } from "react";
 import { irA } from "@/lib/scroll";
 
 const VARIANTES = {
-  primario: "bg-marino text-white hover:bg-marino-claro",
-  secundario: "border border-linea bg-white text-marino hover:border-marino/40",
+  primario: "bg-marino text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_10px_24px_-10px_rgb(11_31_58/0.6)] hover:bg-marino-claro",
+  secundario: "border border-linea bg-white/80 text-marino backdrop-blur-sm hover:border-marino/40",
   invertido: "bg-white text-marino hover:bg-white/90",
 };
 

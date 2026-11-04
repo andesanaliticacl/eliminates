@@ -1,7 +1,10 @@
+import type { CSSProperties } from "react";
+
 // Fondo de la historia: el radar escanea el historial, detecta cada antecedente y termina en verde.
 // El barrido gira solo con CSS (transform); lo demás lo mueve el scroll desde Animaciones.tsx.
 
 const ANILLOS = [120, 210, 300, 390, 480];
+const SEGUNDOS_VUELTA = 7; // igual que radar-gira en globals.css
 
 // Coordenadas sobre un viewBox de 1000, con el centro detrás de la tarjeta. Mismo orden que las filas.
 const DETECCIONES = [
@@ -36,7 +39,10 @@ export function Radar() {
       <div className="absolute inset-0 hidden lg:block">
         {DETECCIONES.map(({ x, y, etiqueta }, i) => (
           <div key={etiqueta} data-deteccion={i} className="absolute" style={{ left: `${x / 10}%`, top: `${y / 10}%` }}>
-            <span className="radar-punto absolute -top-1 -left-1 size-2 rounded-full bg-deuda" />
+            <span
+              className="radar-punto absolute -top-1 -left-1 size-2 rounded-full bg-deuda"
+              style={{ "--eco": `${((((Math.atan2(x - 500, 500 - y) * 180) / Math.PI + 360) % 360) / 360 * SEGUNDOS_VUELTA).toFixed(2)}s` } as CSSProperties}
+            />
             <span className="absolute top-1/2 left-3.5 hidden -translate-y-1/2 text-[0.7rem] font-medium whitespace-nowrap text-deuda xl:block">
               {etiqueta}
             </span>

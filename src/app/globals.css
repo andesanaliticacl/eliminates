@@ -136,7 +136,7 @@ html.lenis body {
     inset: 0;
     border-radius: 9999px;
     background: inherit;
-    animation: radar-eco 2.6s ease-out infinite;
+    animation: radar-eco 7s ease-out var(--eco, 0s) infinite both;
   }
 }
 @keyframes radar-gira {
@@ -145,14 +145,97 @@ html.lenis body {
   }
 }
 @keyframes radar-eco {
-  from {
-    opacity: 0.55;
+  0% {
+    opacity: 0.7;
     transform: scale(1);
   }
-  to {
+  26%,
+  100% {
     opacity: 0;
-    transform: scale(4.5);
+    transform: scale(5);
   }
+}
+
+/* ─── Terminación ─── */
+.tachar {
+  position: relative;
+}
+.tachar::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  top: 53%;
+  height: 0.06em;
+  border-radius: 9999px;
+  background: var(--color-limpio);
+  transform-origin: left;
+  animation: tachar 0.8s 0.95s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes tachar {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.etiqueta-seccion {
+  margin-bottom: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-limpio-oscuro);
+}
+
+/* Luz que sigue al cursor: las coordenadas las pone Animaciones.tsx */
+.tarjeta-luz {
+  position: relative;
+  isolation: isolate;
+}
+.tarjeta-luz::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--luz-x, 50%) var(--luz-y, 50%), rgb(7 135 95 / 0.09), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .tarjeta-luz:hover::before {
+    opacity: 1;
+  }
+}
+
+.fila-informe {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+li:first-child > .fila-informe {
+  border-top-color: transparent;
+}
+@media (hover: hover) {
+  .fila-informe[aria-pressed="false"]:hover {
+    background: rgb(11 31 58 / 0.035);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pista-punto {
+    animation: pista 1.6s ease-in-out infinite;
+  }
+}
+@keyframes pista {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+.cierre-radar {
+  background-image: repeating-radial-gradient(circle at 50% 120%, transparent 0 89px, rgb(255 255 255 / 0.07) 90px 91px);
 }
 
 /* ─── Indicador "Desliza" ─── */

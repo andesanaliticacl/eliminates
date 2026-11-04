@@ -54,7 +54,7 @@ export function PasosInteractivos() {
                 setManual(true);
                 setActivo(i);
               }}
-              className={`flex w-full items-center gap-4 rounded-2xl border p-3 text-left transition-[border-color,background-color,box-shadow] duration-300 lg:p-4 ${
+              className={`tarjeta-luz flex w-full items-center gap-4 rounded-2xl border p-3 text-left transition-[border-color,background-color,box-shadow] duration-300 lg:p-4 ${
                 i === activo ? "border-limpio bg-white shadow-md" : "border-linea/80 bg-white/90 hover:border-marino/40"
               }`}
             >

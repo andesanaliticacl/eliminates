@@ -18,8 +18,8 @@ export function Navbar({ logoUrl }: { logoUrl: string }) {
   return (
     <>
       <div id="barra-progreso" aria-hidden="true" className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-limpio" />
-      <header className={`fixed inset-x-0 top-0 z-40 transition-[background-color,box-shadow,backdrop-filter] duration-300 ${solida ? "bg-white/80 shadow-[0_1px_0_rgb(11_31_58/0.06)] backdrop-blur-xl" : ""}`}>
-        <nav aria-label="Principal" className="mx-auto flex h-14 max-w-[77.5rem] items-center justify-between px-4 lg:h-16 lg:px-8">
+      <header className="fixed inset-x-0 top-1.5 z-40 px-2 lg:top-3 lg:px-4">
+        <nav aria-label="Principal" className={`mx-auto flex h-12 max-w-[76rem] items-center justify-between rounded-full border pr-1.5 pl-4 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 lg:h-14 lg:pr-2 lg:pl-6 ${solida ? "border-linea/70 bg-white/75 shadow-[0_8px_30px_-12px_rgb(11_31_58/0.25)] backdrop-blur-xl" : "border-transparent"}`}>
           <Link href="/" aria-label="Elimínate, inicio"><Logo url={logoUrl} /></Link>
           <div className="flex items-center gap-6">
             <div className="hidden items-center gap-6 text-sm text-marino/80 lg:flex">
