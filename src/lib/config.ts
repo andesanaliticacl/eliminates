@@ -47,7 +47,7 @@ export const MINUTOS_RETENCION = 30;
 export const MINUTOS_ANTICIPACION = 120;
 
 export const NOTA_LEGAL =
-  "La procedencia de cada eliminación depende de los requisitos legales aplicables a tu caso; te lo explicamos desde el primer análisis.";
+  "La procedencia de cada eliminación depende de los requisitos legales aplicables a tu caso. Te lo explicamos con claridad desde el primer análisis.";
 
 export function combinarConfig(guardada: Partial<Config> | null | undefined): Config {
   const g = guardada ?? {};

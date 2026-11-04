@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type PointerEvent, type ReactNode } from "react";
-import { irA } from "@/lib/scroll";
+import { irASeccion } from "@/lib/scroll";
 
 const VARIANTES = {
   primario: "bg-marino text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_10px_24px_-10px_rgb(11_31_58/0.6)] hover:bg-marino-claro",
@@ -14,13 +14,11 @@ export function Cta({
   href,
   variante = "primario",
   className = "",
-  offset,
   children,
 }: {
   href: string;
   variante?: keyof typeof VARIANTES;
   className?: string;
-  offset?: number;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
@@ -42,7 +40,7 @@ export function Cta({
       href={href}
       onClick={(e) => {
         e.preventDefault();
-        irA(href, { offset });
+        irASeccion(href);
       }}
       onPointerMove={mover}
       onPointerLeave={soltar}

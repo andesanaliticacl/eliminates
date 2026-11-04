@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 
 const PASOS = [
-  { titulo: "Nos cuentas tu caso", texto: "Formulario breve, sin costo y sin compromiso." },
-  { titulo: "Análisis en 24 horas", texto: "Un abogado revisa tus antecedentes." },
-  { titulo: "Te proponemos la vía legal", texto: "Con plazos y costos claros." },
-  { titulo: "Gestionamos todo hasta el cierre", texto: "Tú sigues con lo tuyo." },
+  { titulo: "Nos cuentas tu caso", texto: "Completas un formulario breve o nos escribes. Sin costo y sin compromiso." },
+  { titulo: "Análisis en 24 horas", texto: "Revisamos tus antecedentes y evaluamos tu situación particular." },
+  { titulo: "Te proponemos la vía", texto: "Administrativa o judicial: te explicamos opciones, plazos y costos con claridad." },
+  { titulo: "Gestionamos todo", texto: "Nos encargamos del proceso completo y te mantenemos informado hasta el cierre." },
 ];
 
-const INTERVALO_MS = 2400;
+const INTERVALO_MS = 2600;
 
 // Avanza solo mientras se ve en pantalla, hasta que la persona toca un paso.
 export function PasosInteractivos() {
@@ -19,7 +19,7 @@ export function PasosInteractivos() {
   const [manual, setManual] = useState(false);
 
   useEffect(() => {
-    const observador = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.4 });
+    const observador = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.2 });
     if (raiz.current) observador.observe(raiz.current);
     return () => observador.disconnect();
   }, []);
@@ -30,17 +30,17 @@ export function PasosInteractivos() {
     return () => clearInterval(t);
   }, [visible, manual]);
 
-  // El sello de la tarjeta del informe acompaña al paso activo.
+  // El informe acompaña al paso activo: un sello en cada etapa e historial limpio al final.
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("eliminate:sello", { detail: visible ? activo : -1 }));
   }, [visible, activo]);
 
   return (
-    <ol ref={raiz} className="relative mt-6 grid gap-3">
-      <span aria-hidden="true" className="absolute top-6 bottom-6 left-[1.875rem] w-px bg-linea lg:left-[2.125rem]" />
+    <ol ref={raiz} className="relative mt-4 grid gap-2.5">
+      <span aria-hidden="true" className="absolute top-6 bottom-6 left-[2.125rem] w-px bg-linea" />
       <span
         aria-hidden="true"
-        className="absolute top-6 bottom-6 left-[1.875rem] w-px origin-top bg-limpio transition-transform duration-500 ease-out lg:left-[2.125rem]"
+        className="absolute top-6 bottom-6 left-[2.125rem] w-px origin-top bg-limpio transition-transform duration-500 ease-out"
         style={{ transform: `scaleY(${activo / (PASOS.length - 1)})` }}
       />
       {PASOS.map(({ titulo, texto }, i) => {
@@ -54,7 +54,7 @@ export function PasosInteractivos() {
                 setManual(true);
                 setActivo(i);
               }}
-              className={`tarjeta-luz flex w-full items-center gap-4 rounded-2xl border p-3 text-left transition-[border-color,background-color,box-shadow] duration-300 lg:p-4 ${
+              className={`tarjeta-luz flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow] duration-300 ${
                 i === activo ? "border-limpio bg-white shadow-md" : "border-linea/80 bg-white/90 hover:border-marino/40"
               }`}
             >

@@ -6,9 +6,8 @@ import { actualizarBorrador, antecedentesActuales } from "../wizard/borrador";
 
 // Todo se carga de forma diferida: GSAP y Lenis no compiten con el primer pintado (Lighthouse móvil).
 //
-// El informe no lo mueve el scroll: refleja un estado (qué eligió la persona y si ya llegó a la
-// escena de confianza). pintar() anima desde donde esté hacia ese estado, así nunca queda a medias.
-// Solo el giro final sigue atado al scroll.
+// El informe no lo mueve el scroll: refleja un estado (qué eligió la persona y en qué paso del
+// proceso está). pintar() anima desde donde esté hacia ese estado, así nunca queda a medias.
 export function Animaciones() {
   useEffect(() => {
     let cancelado = false;
@@ -20,11 +19,7 @@ export function Animaciones() {
       gsap.registerPlugin(ScrollTrigger);
       limpiar = await montar(gsap, ScrollTrigger);
       if (cancelado) limpiar();
-    })().catch((error) => {
-      console.error(error);
-      // Si la animación no cargó, el wizard debe quedar disponible igual.
-      document.documentElement.removeAttribute("data-anim");
-    });
+    })().catch((error) => console.error(error));
 
     return () => {
       cancelado = true;
@@ -44,29 +39,9 @@ const AGUJA_INICIO = -90;
 const AGUJA_MOROSO = -70;
 const AGUJA_POR_FILA = 34;
 const AGUJA_LIMPIO = 68;
-const SCRUB = 0.8;
-
-/** Envuelve cada palabra en una máscara para que suba desde abajo. El texto sigue siendo el mismo. */
-function dividirTitulo(titulo: HTMLElement): () => void {
-  const original = titulo.textContent ?? "";
-  titulo.replaceChildren();
-  original.split(" ").forEach((palabra, i) => {
-    if (i > 0) titulo.append(" ");
-    const mascara = document.createElement("span");
-    mascara.className = "palabra-mascara";
-    const interior = document.createElement("span");
-    interior.dataset.palabra = "";
-    interior.textContent = palabra;
-    mascara.append(interior);
-    titulo.append(mascara);
-  });
-  return () => {
-    titulo.textContent = original;
-  };
-}
+const ULTIMO_PASO = 3;
 
 async function montar(gsap: Gsap, ScrollTrigger: ST) {
-  const raiz = document.documentElement;
   const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s);
   const $$ = <T extends Element = HTMLElement>(s: string) => gsap.utils.toArray<T>(s);
 
@@ -85,7 +60,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   gsap.set("[data-sello]", { xPercent: -50, yPercent: -50, rotation: -4 });
 
   // ─── Estado del informe ───────────────────────────────────────────────────
-  let llegoAConfianza = false;
+  let pasoFinal = false;
   let estabaLimpio = false;
   let primeraVez = true;
   let puertasVisibles = false;
@@ -95,14 +70,14 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   const pintarRiesgo = (limpio: boolean, eliminadas: number) => {
     if (!riesgo) return;
     const [nivel, texto, clases] = limpio
-      ? ["limpio", "Sin antecedentes", "bg-limpio-claro text-limpio-oscuro"]
+      ? ["limpio", "Listo para empezar de nuevo", "bg-limpio-claro text-limpio-oscuro"]
       : eliminadas >= 2
         ? ["medio", "Riesgo medio", "bg-ambar/20 text-marino"]
         : ["alto", "Riesgo alto", "bg-deuda/10 text-deuda"];
     if (riesgo.dataset.riesgo === nivel) return;
     riesgo.dataset.riesgo = nivel;
     riesgo.textContent = texto;
-    riesgo.className = `rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold ${clases}`;
+    riesgo.className = `rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold whitespace-nowrap ${clases}`;
   };
   const pintarPista = () => {
     gsap.to("[data-pista]", { autoAlpha: yaToco || puertasVisibles ? 0 : 1, duration: seg(0.3), overwrite: "auto" });
@@ -110,7 +85,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
 
   const pintar = () => {
     const elegidas = antecedentesActuales();
-    const limpio = llegoAConfianza || elegidas.length === ORDEN_FILAS.length;
+    const limpio = pasoFinal || elegidas.length === ORDEN_FILAS.length;
     const a = { overwrite: "auto" as const };
 
     let eliminadas = 0;
@@ -157,18 +132,18 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
     primeraVez = false;
   };
 
-  // En el momento limpio no compite ningún sello con el encabezado verde.
-  let selloPedido = -1;
-  const pintarSello = () => {
-    const activo = llegoAConfianza ? -1 : selloPedido;
+  // Cada paso del proceso pone su sello; el último deja el historial limpio.
+  const alCambiarPaso = (e: Event) => {
+    const paso = (e as CustomEvent<number>).detail;
+    const final = paso === ULTIMO_PASO;
     $$("[data-sello]").forEach((sello, i) => {
-      const si = i === activo;
+      const si = i === paso && !final;
       gsap.to(sello, { opacity: si ? 1 : 0, scale: si ? 1 : 1.12, duration: seg(si ? 0.35 : 0.2), ease: "power3.out", overwrite: "auto" });
     });
-  };
-  const alCambiarSello = (e: Event) => {
-    selloPedido = (e as CustomEvent<number>).detail;
-    pintarSello();
+    if (final !== pasoFinal) {
+      pasoFinal = final;
+      pintar();
+    }
   };
 
   // Las filas del propio informe también se tocan: comparten la selección con las tarjetas
@@ -192,31 +167,19 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   document.addEventListener("pointermove", moverLuz, { passive: true });
 
   window.addEventListener("eliminate:seleccion", pintar);
-  window.addEventListener("eliminate:sello", alCambiarSello);
+  window.addEventListener("eliminate:sello", alCambiarPaso);
   pintar();
 
   const contexto = gsap.context(() => {
-    // Las puertas aparecen con el problema
+    // Las puertas aparecen junto con el panel
     ScrollTrigger.create({
-      trigger: "#escena-problema",
+      trigger: "#panel",
       start: "top 75%",
       end: "max",
       onToggle: (self) => {
         puertasVisibles = self.isActive;
         pintarPista();
         gsap.to("[data-chip]", { opacity: self.isActive ? 1 : 0, y: self.isActive ? 0 : 8, duration: seg(0.45), stagger: seg(0.08), ease: "power2.out", overwrite: "auto" });
-      },
-    });
-
-    // Al llegar a la confianza, el informe queda limpio; al volver, respeta lo que se había elegido
-    ScrollTrigger.create({
-      trigger: "#escena-confianza",
-      start: "top 45%",
-      end: "max",
-      onToggle: (self) => {
-        llegoAConfianza = self.isActive;
-        pintar();
-        pintarSello();
       },
     });
 
@@ -246,7 +209,7 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
     document.removeEventListener("click", alTocarFila);
     document.removeEventListener("pointermove", moverLuz);
     window.removeEventListener("eliminate:seleccion", pintar);
-    window.removeEventListener("eliminate:sello", alCambiarSello);
+    window.removeEventListener("eliminate:sello", alCambiarPaso);
   };
 
   if (reducido) {
@@ -264,36 +227,12 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
   gsap.ticker.add(tic);
   gsap.ticker.lagSmoothing(0);
 
-  const restaurarTitulos = $$("[data-titulo]").map(dividirTitulo);
-
-  // Dentro de un timeline, fromTo pintaría su estado inicial de inmediato y pisaría al HTML.
-  const desde = (tl: gsap.core.Timeline, target: gsap.TweenTarget, de: gsap.TweenVars, a: gsap.TweenVars, posicion: number) =>
-    tl.fromTo(target, de, { ...a, immediateRender: false }, posicion);
-
   contexto.add(() => {
     gsap.fromTo("#barra-progreso", { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.2 } });
-
-    $$("[data-titulo]").forEach((titulo) => {
-      gsap.fromTo(
-        titulo.querySelectorAll("[data-palabra]"),
-        { yPercent: 135 },
-        { yPercent: 0, duration: 0.9, stagger: 0.05, ease: "power4.out", scrollTrigger: { trigger: titulo, start: "top 92%", toggleActions: "play none none reverse" } },
-      );
-    });
-
-    // Tarjetas: entran juntas y rápido, sin esperar scroll
-    $$("[data-revelar]").forEach((el) => {
-      gsap.fromTo(
-        el,
-        { opacity: 0, y: 18 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 95%", toggleActions: "play none none reverse" } },
-      );
-    });
   });
 
+  // Tilt sutil de la tarjeta, solo con mouse
   const mm = gsap.matchMedia();
-
-  // ─── Desktop: tilt sutil y giro en su lugar, que convierte la tarjeta en el wizard ───
   mm.add("(min-width: 1024px)", () => {
     const inclinacion = $("[data-inclinacion]")!;
     const rotX = gsap.quickTo(inclinacion, "rotationX", { duration: 1.1, ease: "power3.out" });
@@ -304,72 +243,21 @@ async function montar(gsap: Gsap, ScrollTrigger: ST) {
       rotX((e.clientY / window.innerHeight - 0.5) * -4);
     };
     window.addEventListener("pointermove", moverPuntero, { passive: true });
-
-    gsap.fromTo("[data-desliza]", { opacity: 1 }, { opacity: 0, ease: "none", scrollTrigger: { start: 0, end: 160, scrub: 0.2 } });
-
-    const frente = $("[data-frente]")!;
-    const reverso = $("[data-reverso-cara]")!;
-    const tlGiro = gsap.timeline({
-      scrollTrigger: { trigger: "#escena-turno", start: "top 45%", endTrigger: "#historia", end: "bottom bottom", scrub: SCRUB },
-    });
-    tlGiro.to("[data-chip-caja]", { opacity: 0, duration: 0.25 }, 0);
-    tlGiro.to("[data-destello-caja]", { opacity: 0, duration: 0.25 }, 0);
-    tlGiro.to("[data-radar]", { opacity: 0, duration: 0.5 }, 0.7);
-    desde(tlGiro, frente, { rotationY: 0 }, { rotationY: -90, duration: 0.5, ease: "power2.in" }, 0.2);
-    tlGiro.set(frente, { autoAlpha: 0 }, 0.7);
-    tlGiro.set(reverso, { opacity: 1 }, 0.7);
-    desde(tlGiro, reverso, { rotationY: 90 }, { rotationY: 0, duration: 0.5, ease: "power2.out" }, 0.7);
-
-    // Al terminar, el wizard real toma el lugar del reverso.
-    let enfocado = false;
-    const intercambio = ScrollTrigger.create({
-      trigger: "#historia",
-      start: "bottom bottom",
-      end: "max",
-      onToggle: (self) => {
-        if (self.isActive) {
-          raiz.setAttribute("data-wizard", "");
-          // Un cuadro después: un refresh de ScrollTrigger puede activar y desactivar esto de paso.
-          requestAnimationFrame(() => {
-            if (enfocado || !self.isActive) return;
-            enfocado = true;
-            window.dispatchEvent(new Event("eliminate:enfocar-nombre"));
-          });
-        } else {
-          raiz.removeAttribute("data-wizard");
-        }
-      },
-    });
-
-    return () => {
-      window.removeEventListener("pointermove", moverPuntero);
-      intercambio.kill();
-      raiz.removeAttribute("data-wizard");
-    };
+    return () => window.removeEventListener("pointermove", moverPuntero);
   });
 
-  // ─── Mobile: giro simple dentro de la tarjeta compacta ────────────────────
-  mm.add("(max-width: 1023px)", () => {
-    const tl = gsap.timeline({ scrollTrigger: { trigger: "#escena-turno", start: "top 75%", end: "top 25%", scrub: SCRUB } });
-    tl.to("[data-chip-caja]", { opacity: 0, duration: 0.2 }, 0);
-    tl.to("[data-radar]", { opacity: 0, duration: 0.5 }, 0.3);
-    desde(tl, "[data-frente]", { rotationY: 0 }, { rotationY: -90, duration: 0.5, ease: "power2.in" }, 0);
-    tl.set("[data-frente]", { autoAlpha: 0 }, 0.5);
-    tl.set("[data-reverso-compacto]", { opacity: 1 }, 0.5);
-    desde(tl, "[data-reverso-compacto]", { rotationY: 90 }, { rotationY: 0, duration: 0.5, ease: "power2.out" }, 0.5);
-  });
-
-  // El alto de las fuentes y de los bloques cambia las posiciones al terminar de cargar.
+  // Cambiar de pestaña altera el alto de la página.
   const refrescar = () => ScrollTrigger.refresh();
   window.addEventListener("load", refrescar);
+  window.addEventListener("eliminate:pestana", refrescar);
   document.fonts?.ready.then(refrescar);
 
   return () => {
     quitarEventos();
     window.removeEventListener("load", refrescar);
+    window.removeEventListener("eliminate:pestana", refrescar);
     contexto.revert();
     mm.revert();
-    restaurarTitulos.forEach((restaurar) => restaurar());
     gsap.ticker.remove(tic);
     lenis.destroy();
     delete window.__lenis;

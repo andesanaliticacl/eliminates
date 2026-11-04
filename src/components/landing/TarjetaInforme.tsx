@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { IconoBanco, IconoCandado, IconoCandadoAbierto, IconoCasa, IconoMaletin, IconoTarjeta } from "../iconos";
 import { Radar } from "./Radar";
-import { ReversoCompacto, ReversoWizard } from "./Reverso";
 
 const FILAS = [
   { etiqueta: "Deuda castigada", valor: "$1.250.000" },
@@ -30,7 +29,7 @@ function arco(desde: number, hasta: number, r = 44, cx = 50, cy = 50) {
 
 function Medidor() {
   return (
-    <div className="relative w-24 shrink-0 lg:mx-auto lg:w-52">
+    <div className="relative w-24 shrink-0 lg:mx-auto lg:w-52 lg:[@media(max-height:760px)]:w-36">
       <svg viewBox="0 0 100 56" className="block w-full" aria-hidden="true">
         <path d={arco(-88, -32)} fill="none" stroke="var(--color-deuda)" strokeWidth="7" strokeLinecap="round" />
         <path d={arco(-26, 26)} fill="none" stroke="var(--color-ambar)" strokeWidth="7" strokeLinecap="round" />
@@ -44,7 +43,7 @@ function Medidor() {
             return <line key={i} x1={(50 + 36 * Math.cos(rad)).toFixed(2)} y1={(50 + 36 * Math.sin(rad)).toFixed(2)} x2={(50 + 38.5 * Math.cos(rad)).toFixed(2)} y2={(50 + 38.5 * Math.sin(rad)).toFixed(2)} />;
           })}
         </g>
-        <circle cx="50" cy="50" r="4.4" fill="#fff" stroke="var(--color-marino)" strokeWidth="1.6" />
+        <circle cx="50" cy="50" r="4.4" fill="var(--color-white)" stroke="var(--color-marino)" strokeWidth="1.6" />
       </svg>
       <p className="mt-0.5 text-center text-[0.65rem] leading-none text-tenue lg:mt-2 lg:text-xs">
         Puntaje <span data-puntaje className="font-semibold text-marino tabular-nums">300</span>
@@ -73,27 +72,27 @@ export function TarjetaInforme() {
 
                 <div
                   role="group"
-                  aria-label="Informe comercial de ejemplo. Toca una fila para eliminarla."
+                  aria-label="Informe de antecedentes de ejemplo. Toca una fila para eliminarla."
                   className="relative overflow-hidden rounded-2xl border border-linea/70 bg-white shadow-tarjeta ring-1 ring-white/60 lg:rounded-[1.75rem]"
                 >
                   {/* El verde barre sobre el rojo: se anima solo transform */}
-                  <div className="relative flex h-8 items-center justify-between overflow-hidden bg-deuda px-3.5 text-white lg:h-16 lg:px-6">
+                  <div className="informe-cabecera relative flex h-8 items-center justify-between gap-2 overflow-hidden bg-deuda px-3.5 text-white lg:h-16 lg:px-6 lg:[@media(max-height:760px)]:h-12">
                     <div data-cabecera-limpia className="absolute inset-0 origin-left scale-x-0 bg-limpio" />
-                    <span className="relative text-[0.6rem] font-medium tracking-[0.14em] uppercase lg:text-[0.68rem]">Informe comercial</span>
-                    <span className="relative grid justify-items-end text-[0.72rem] font-semibold tracking-wide lg:text-base">
+                    <span className="relative text-[0.6rem] font-medium tracking-[0.1em] whitespace-nowrap uppercase lg:text-[0.65rem]">Informe de antecedentes</span>
+                    <span className="relative grid justify-items-end text-[0.72rem] font-semibold tracking-wide whitespace-nowrap lg:text-sm">
                       <span data-texto-moroso className="col-start-1 row-start-1">MOROSO</span>
                       <span data-texto-limpio className="col-start-1 row-start-1 opacity-0">HISTORIAL LIMPIO ✓</span>
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 lg:block lg:p-6">
+                  <div className="flex items-center gap-3 p-3 lg:block lg:p-6 lg:[@media(max-height:760px)]:p-4">
                     <Medidor />
-                    <ul className="min-w-0 flex-1 lg:mt-5">
+                    <ul className="min-w-0 flex-1 lg:mt-5 lg:[@media(max-height:760px)]:mt-2">
                       {FILAS.map((fila, i) => (
                         <li key={fila.etiqueta} className="fila-entra" style={{ "--i": i } as CSSProperties}>
                           <button type="button" data-fila={i} aria-pressed="false" className="fila-informe pointer-events-auto relative block w-full border-t border-linea/70 text-left">
                             <span data-fila-fondo className="absolute inset-0 -mx-1 block origin-left scale-x-0 rounded bg-limpio-claro lg:-mx-2" />
-                            <span className="relative flex items-center justify-between gap-2 py-[0.3rem] lg:py-2.5">
+                            <span className="relative flex items-center justify-between gap-2 py-[0.3rem] lg:py-2.5 lg:[@media(max-height:760px)]:py-1.5">
                               <span className="relative min-w-0 truncate text-[0.68rem] text-marino lg:text-sm">
                                 <span data-fila-etiqueta>{fila.etiqueta}</span>
                                 <span data-tachado className="absolute inset-x-0 top-1/2 h-px origin-left scale-x-0 bg-marino lg:h-[1.5px]" />
@@ -154,7 +153,6 @@ export function TarjetaInforme() {
                 </ul>
               </div>
 
-              <ReversoCompacto />
             </div>
           </div>
         </div>
@@ -174,7 +172,6 @@ export function Escenario() {
               <Radar />
               <TarjetaInforme />
             </div>
-            <ReversoWizard />
           </div>
         </div>
       </div>

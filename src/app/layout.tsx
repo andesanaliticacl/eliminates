@@ -24,14 +24,13 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
 
-// Antes de pintar: habilita las escenas animadas (ver globals.css) salvo con movimiento reducido.
-const INICIO_ANIMACION = `if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.setAttribute("data-anim","")`;
+const APLICAR_TEMA = `try{if(localStorage.getItem("eliminate.tema")==="negro")document.documentElement.dataset.tema="negro"}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-CL" className={GeistSans.variable} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: INICIO_ANIMACION }} />
+        <script dangerouslySetInnerHTML={{ __html: APLICAR_TEMA }} />
       </head>
       <body>{children}</body>
     </html>

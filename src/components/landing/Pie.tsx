@@ -7,10 +7,10 @@ export function Pie({ config }: { config: Config }) {
   const { contacto, abogado } = config;
   return (
     <footer className="border-t border-linea bg-fondo">
-      <div className="mx-auto grid max-w-[77.5rem] gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-[77.5rem] gap-10 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <Logo url={config.logo_url} />
-          <p className="mt-3 text-sm leading-relaxed text-tenue">Gestión legal para eliminar antecedentes comerciales, financieros y penales en Chile.</p>
+          <p className="mt-3 text-sm leading-relaxed text-tenue">Gestión legal para eliminar antecedentes comerciales, financieros, de deuda castigada y penales en Chile.</p>
           <p className="mt-3 text-sm text-tenue">{abogado.nombre}</p>
         </div>
         <div>
@@ -25,9 +25,9 @@ export function Pie({ config }: { config: Config }) {
         <div>
           <h3 className="text-sm font-semibold text-marino">Servicios</h3>
           <ul className="mt-3 grid gap-2 text-sm text-tenue">
-            <li>Antecedentes comerciales y financieros</li>
+            <li>Comerciales y financieros</li>
             <li>Antecedentes penales</li>
-            <li>Gestión legal administrativa y judicial</li>
+            <li>Gestión legal</li>
           </ul>
         </div>
         <div>

@@ -19,13 +19,53 @@
   --shadow-tarjeta: 0 1px 2px rgb(11 31 58 / 0.04), 0 12px 32px -8px rgb(11 31 58 / 0.1), 0 40px 80px -32px rgb(11 31 58 / 0.14);
 }
 
+/*
+ * Fondo negro. Toda la paleta se invierte con los mismos nombres: "white" es la superficie y
+ * "marino" el contraste, así un botón bg-marino text-white sigue legible en ambos temas.
+ */
+html[data-tema="negro"] {
+  color-scheme: dark;
+  --color-white: #000;
+  --color-marino: #f4f6f8;
+  --color-marino-claro: #d5dae1;
+  --color-tenue: #a3acb9;
+  --color-linea: #2a2e35;
+  --color-fondo: #0d0f12;
+  --color-deuda: #ef8a84;
+  --color-limpio: #2fc795;
+  --color-limpio-claro: #0d2a20;
+  --color-limpio-oscuro: #5fe0b4;
+  --color-ambar: #e8b85c;
+  --shadow-tarjeta: 0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 60px -20px rgb(0 0 0 / 0.9);
+}
+
+/* Estas dos piezas mantienen su color propio: invertidas pierden peso sobre el negro */
+html[data-tema="negro"] .informe-cabecera {
+  background: #8f3732;
+  color: #fff;
+}
+html[data-tema="negro"] .informe-cabecera [data-cabecera-limpia] {
+  background: #0a7d59;
+}
+html[data-tema="negro"] .cierre-radar {
+  background-color: #0d0f12;
+  border-block: 1px solid var(--color-linea);
+}
+html[data-tema="negro"] .cierre-radar h2 {
+  color: #fff;
+}
+html[data-tema="negro"] .cierre-radar a {
+  background: #fff;
+  color: #000;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: auto;
 }
 
 body {
-  background: #fff;
+  background: var(--color-white);
   color: var(--color-marino);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -77,18 +117,6 @@ html.lenis body {
     opacity: 0.01;
     transform: translateY(12px);
   }
-}
-
-/* ─── Titulares de las escenas: máscara por palabra (ver dividirTitulo) ─── */
-.palabra-mascara {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: top;
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
-}
-.palabra-mascara > span {
-  display: inline-block;
 }
 
 /* ─── Tarjeta: entrada con profundidad y flotación en reposo ─── */
@@ -157,25 +185,9 @@ html.lenis body {
 }
 
 /* ─── Terminación ─── */
-.tachar {
-  position: relative;
-}
-.tachar::after {
-  content: "";
-  position: absolute;
-  left: -2%;
-  right: -2%;
-  top: 53%;
-  height: 0.06em;
-  border-radius: 9999px;
-  background: var(--color-limpio);
-  transform-origin: left;
-  animation: tachar 0.8s 0.95s cubic-bezier(0.65, 0, 0.35, 1) both;
-}
-@keyframes tachar {
-  from {
-    transform: scaleX(0);
-  }
+.panel-entra {
+  animation: aparece 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 0s;
 }
 
 .etiqueta-seccion {
@@ -218,7 +230,7 @@ li:first-child > .fila-informe {
 }
 @media (hover: hover) {
   .fila-informe[aria-pressed="false"]:hover {
-    background: rgb(11 31 58 / 0.035);
+    background: color-mix(in srgb, var(--color-marino) 5%, transparent);
   }
 }
 
@@ -341,26 +353,6 @@ li:first-child > .fila-informe {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: transform;
-}
-
-/*
- * En desktop la tarjeta gira y su reverso se convierte en el wizard real: al terminar el giro
- * ambos coinciden en pantalla. data-anim lo pone un script en <head> antes de pintar, así este
- * solapamiento no provoca saltos de layout. Sin JS o con movimiento reducido, nada de esto aplica.
- */
-@media (min-width: 1024px) {
-  html[data-anim] #solicitud {
-    margin-top: -100svh;
-  }
-  html[data-anim]:not([data-wizard]) #solicitud-tarjeta {
-    visibility: hidden;
-  }
-  html[data-anim][data-wizard] [data-reverso] {
-    visibility: hidden;
-  }
-  html:not([data-anim]) [data-reverso] {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

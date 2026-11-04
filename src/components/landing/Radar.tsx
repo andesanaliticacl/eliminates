@@ -8,10 +8,10 @@ const SEGUNDOS_VUELTA = 7; // igual que radar-gira en globals.css
 
 // Coordenadas sobre un viewBox de 1000, con el centro detrás de la tarjeta. Mismo orden que las filas.
 const DETECCIONES = [
-  { x: 270, y: 225, etiqueta: "Deuda castigada" },
-  { x: 722, y: 200, etiqueta: "Morosidad comercial" },
-  { x: 722, y: 772, etiqueta: "Informe financiero" },
-  { x: 265, y: 772, etiqueta: "Antecedente penal" },
+  { x: 238, y: 262, etiqueta: "Deuda castigada" },
+  { x: 722, y: 262, etiqueta: "Morosidad comercial" },
+  { x: 722, y: 745, etiqueta: "Informe financiero" },
+  { x: 238, y: 745, etiqueta: "Antecedente penal" },
 ] as const;
 
 export function Radar() {

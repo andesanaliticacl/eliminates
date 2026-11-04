@@ -68,15 +68,6 @@ export function Wizard({ servicio, precio }: { servicio: string; precio: number 
     if (archivos.length === 0 && !b.solicitudToken) setPerdidos(b.archivos);
   }, [b.archivos, b.solicitudToken, archivos.length]);
 
-  useEffect(() => {
-    const enfocar = () => {
-      const nombre = document.getElementById("w-nombre") as HTMLInputElement | null;
-      if (nombre && !nombre.value) nombre.focus({ preventScroll: true });
-    };
-    window.addEventListener("eliminate:enfocar-nombre", enfocar);
-    return () => window.removeEventListener("eliminate:enfocar-nombre", enfocar);
-  }, []);
-
   const irAPaso = (paso: number, dir: number) => {
     setDireccion(dir);
     setMostrarErrores(false);
