@@ -26,13 +26,7 @@ export const POST = ruta(async (req: Request) => {
 
   if (typeof cuerpo.holdToken !== "string") return error("Tu reserva de horario venció. Elige otra hora.", 409, { codigo: "HOLD_EXPIRADO" });
 
-  // El precio siempre sale de la configuración, nunca de lo que envía el navegador.
-  const config = await store.obtenerConfig();
-  const solicitud = await store.crearSolicitud(
-    { ...validacion.datos, servicio: config.servicio_nombre, monto_clp: config.precio_clp },
-    cuerpo.holdToken,
-    MINUTOS_RETENCION,
-  );
+  const solicitud = await store.crearSolicitud(validacion.datos, cuerpo.holdToken, MINUTOS_RETENCION);
   if (!solicitud) return error("Tu reserva de horario venció. Elige otra hora.", 409, { codigo: "HOLD_EXPIRADO" });
 
   return NextResponse.json({ token: solicitud.token });

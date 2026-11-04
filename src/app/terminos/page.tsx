@@ -18,11 +18,11 @@ export default function Terminos() {
       <h2>Sin garantía de resultado</h2>
       <p>{NOTA_LEGAL} La obligación de Elimínate es de medios: gestionar tu caso con diligencia profesional, no garantizar un resultado determinado.</p>
 
-      <h2>Abono y cita</h2>
-      <p>El abono indicado al solicitar reserva tu cita con un abogado y [describir qué cubre el abono y cómo se imputa al valor de la gestión]. El valor total de la gestión se informa por escrito antes de iniciarla, según la vía y el tipo de antecedente.</p>
+      <h2>Evaluación y cita</h2>
+      <p>La evaluación inicial y la cita son sin costo y sin compromiso. El valor total de la gestión se informa por escrito antes de iniciarla, según la vía y el tipo de antecedente. Puedes reagendar tu cita avisando con [plazo] de anticipación.</p>
 
-      <h2>Pagos, reagendamiento y devoluciones</h2>
-      <p>Los pagos se procesan a través de Mercado Pago. Puedes reagendar tu cita avisando con [plazo] de anticipación. Las devoluciones proceden [condiciones], sin perjuicio de los derechos que te otorga la Ley N° 19.496 sobre Protección de los Derechos de los Consumidores.</p>
+      <h2>Pagos y devoluciones</h2>
+      <p>Si contratas la gestión, el pago se acuerda directamente con Elimínate. Las devoluciones proceden [condiciones], sin perjuicio de los derechos que te otorga la Ley N° 19.496 sobre Protección de los Derechos de los Consumidores.</p>
 
       <h2>Tus obligaciones</h2>
       <p>Debes entregar información y documentos veraces y completos. Elimínate no presenta gestiones basadas en información falsa.</p>

@@ -55,7 +55,7 @@ export default async function DetalleSolicitud({ params }: { params: Promise<{ i
 
       {s.cita_conflicto && (
         <p role="alert" className="mt-4 rounded-xl bg-ambar/15 px-4 py-3 text-sm text-marino">
-          El pago llegó cuando el horario ya estaba tomado: hay que coordinar una nueva hora con esta persona.
+          Al enviar la solicitud, el horario ya estaba tomado: hay que coordinar una nueva hora con esta persona.
         </p>
       )}
 
@@ -95,15 +95,12 @@ export default async function DetalleSolicitud({ params }: { params: Promise<{ i
 
         <div className="grid content-start gap-5">
           <section className={TARJETA}>
-            <h2 className="font-semibold text-marino">Cita y pago</h2>
+            <h2 className="font-semibold text-marino">Cita</h2>
             <dl className="mt-2 divide-y divide-linea">
               <Fila etiqueta="Cita" valor={cita ? `${formatearFecha(cita.inicio)}, ${formatearHora(cita.inicio)}` : "Sin cita"} />
               <Fila etiqueta="Modalidad" valor={cita?.modalidad ?? "—"} />
               <Fila etiqueta="Estado de la cita" valor={cita?.estado ?? "—"} />
-              <Fila etiqueta="Servicio" valor={s.servicio} />
-              <Fila etiqueta="Monto" valor={formatearCLP(s.monto_clp)} />
-              <Fila etiqueta="Estado del pago" valor={s.pago_estado ?? "Sin pago"} />
-              <Fila etiqueta="ID de pago" valor={s.mp_payment_id ?? "—"} />
+              <Fila etiqueta="Enviada" valor={s.enviada_en ? formatearFechaHora(s.enviada_en) : "Sin enviar"} />
               <Fila etiqueta="Avisos enviados" valor={enviadas.length ? enviadas.join(", ") : "Ninguno"} />
             </dl>
           </section>

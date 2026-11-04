@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
 import { test } from "node:test";
 import { agendaDisponible, esBloqueValido, formatearHora, generarBloques, localAUtc } from "../src/lib/fechas.ts";
-import { firmaValida } from "../src/lib/firma-mp.ts";
 import type { Horario } from "../src/lib/tipos.ts";
 import { firmaCoincide, formatearRut, formatearTelefono, telefonoE164, validarDatosSolicitud, validarRut, validarTelefono } from "../src/lib/validacion.ts";
 
@@ -117,17 +115,4 @@ test("Agenda: marca ocupados y valida bloques exactos", () => {
   assert.equal(esBloqueValido(new Date("2026-11-09T12:15:00.000Z"), p), false);
   assert.equal(esBloqueValido(new Date("2026-11-08T12:00:00.000Z"), p), false);
   assert.equal(esBloqueValido(new Date("no es fecha"), p), false);
-});
-
-test("Webhook: verificación de firma de Mercado Pago", () => {
-  const secreto = "secreto-de-prueba";
-  const v1 = createHmac("sha256", secreto).update("id:123;request-id:abc;ts:1700000000;").digest("hex");
-  const base = { firma: `ts=1700000000,v1=${v1}`, requestId: "abc", dataId: "123", secreto };
-  assert.equal(firmaValida(base), true);
-  assert.equal(firmaValida({ ...base, dataId: "124" }), false);
-  assert.equal(firmaValida({ ...base, requestId: "otro" }), false);
-  assert.equal(firmaValida({ ...base, secreto: "otro" }), false);
-  assert.equal(firmaValida({ ...base, firma: null }), false);
-  assert.equal(firmaValida({ ...base, firma: "ts=1700000000,v1=corta" }), false);
-  assert.equal(firmaValida({ ...base, secreto: "" }), false);
 });

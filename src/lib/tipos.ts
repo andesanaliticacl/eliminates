@@ -1,4 +1,4 @@
-export type EstadoSolicitud = "nueva" | "pendiente_pago" | "en_curso" | "cerrada";
+export type EstadoSolicitud = "nueva" | "en_curso" | "cerrada";
 export type EstadoCita = "retenida" | "confirmada" | "liberada" | "cancelada";
 export type Modalidad = "presencial" | "videollamada";
 export type Antecedente = "dicom" | "informe_comercial" | "financiero" | "penal";
@@ -12,7 +12,6 @@ export const ANTECEDENTES: { id: Antecedente; etiqueta: string }[] = [
 
 export const ESTADOS: { id: EstadoSolicitud; etiqueta: string }[] = [
   { id: "nueva", etiqueta: "Nueva" },
-  { id: "pendiente_pago", etiqueta: "Pendiente de pago" },
   { id: "en_curso", etiqueta: "En curso" },
   { id: "cerrada", etiqueta: "Cerrada" },
 ];
@@ -31,12 +30,7 @@ export interface Solicitud {
   monto_aproximado: number | null;
   descripcion: string | null;
   consentimiento_en: string;
-  servicio: string;
-  monto_clp: number;
-  mp_preference_id: string | null;
-  mp_payment_id: string | null;
-  pago_estado: string | null;
-  pagado_en: string | null;
+  enviada_en: string | null;
   cita_conflicto: boolean;
   creado_en: string;
 }
@@ -89,8 +83,6 @@ export interface Testimonio {
 }
 
 export interface Config {
-  servicio_nombre: string;
-  precio_clp: number;
   duracion_bloque_min: number;
   dias_horizonte: number;
   logo_url: string;

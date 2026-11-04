@@ -2,8 +2,6 @@ import type { Config, Horario } from "./tipos";
 
 /** Valores por defecto. Lo guardado en /admin se combina encima (ver combinarConfig). */
 export const CONFIG_POR_DEFECTO: Config = {
-  servicio_nombre: "Abono inicial y cita con abogado",
-  precio_clp: 29990,
   duracion_bloque_min: 30,
   dias_horizonte: 30,
   logo_url: "",
@@ -41,7 +39,7 @@ export const HORARIOS_POR_DEFECTO: Horario[] = [0, 1, 2, 3, 4, 5, 6].map((dia_se
   hora_fin: "18:00",
 }));
 
-/** Minutos que un horario queda retenido mientras la persona paga. */
+/** Minutos que un horario queda retenido mientras se envía la solicitud. */
 export const MINUTOS_RETENCION = 30;
 /** Anticipación mínima para agendar. */
 export const MINUTOS_ANTICIPACION = 120;

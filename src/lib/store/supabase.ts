@@ -72,11 +72,6 @@ export const storeSupabase: Store = {
     ) as { hold_token: string; expira_en: string }[];
     return filas[0] ?? null;
   },
-  async renovarCita(solicitudId, inicio, minutos) {
-    return sinError(
-      await db().rpc("renovar_cita", { p_solicitud_id: solicitudId, p_inicio: inicio, p_minutos: minutos }),
-    ) as boolean;
-  },
   async citaDeSolicitud(solicitudId) {
     const filas = sinError(
       await db().from("citas").select("*").eq("solicitud_id", solicitudId).order("creado_en", { ascending: false }).limit(1),
@@ -100,21 +95,8 @@ export const storeSupabase: Store = {
   async solicitudPorId(id) {
     return sinError(await db().from("solicitudes").select("*").eq("id", id).maybeSingle()) as Solicitud | null;
   },
-  async marcarPendientePago(id, preferenceId) {
-    sinError(await db().from("solicitudes").update({ mp_preference_id: preferenceId }).eq("id", id));
-    sinError(await db().from("solicitudes").update({ estado: "pendiente_pago" }).eq("id", id).eq("estado", "nueva"));
-  },
-  async registrarPagoNoAprobado(id, paymentId, estadoPago) {
-    sinError(
-      await db()
-        .from("solicitudes")
-        .update({ estado: "pendiente_pago", mp_payment_id: paymentId, pago_estado: estadoPago })
-        .eq("id", id)
-        .is("numero_atencion", null),
-    );
-  },
-  async confirmarPago(id, paymentId) {
-    return sinError(await db().rpc("confirmar_pago", { p_solicitud_id: id, p_payment_id: paymentId })) as Solicitud;
+  async confirmarSolicitud(id) {
+    return sinError(await db().rpc("confirmar_solicitud", { p_solicitud_id: id })) as Solicitud;
   },
   async cambiarEstado(id, estado) {
     sinError(await db().from("solicitudes").update({ estado }).eq("id", id));

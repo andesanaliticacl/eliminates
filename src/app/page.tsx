@@ -26,7 +26,7 @@ const PREGUNTAS = [
   },
   {
     p: "¿Cuánto cuesta?",
-    r: "La evaluación inicial es sin costo. El valor de la gestión depende de la vía y del tipo de antecedente. Si agendas una cita, antes de confirmar ves en el resumen el abono que se paga.",
+    r: "La evaluación inicial es sin costo y sin compromiso. El valor de la gestión depende de la vía y del tipo de antecedente, y te lo informamos con claridad antes de empezar.",
   },
   {
     p: "¿Mis datos están seguros?",
@@ -102,7 +102,7 @@ export default async function Inicio() {
                 </p>
                 <div className="aparece mt-5 flex flex-col gap-3 sm:flex-row lg:mt-6" style={{ "--retraso": "0.25s" } as React.CSSProperties}>
                   <Cta href="#solicitud" className="h-13 px-7 text-base">
-                    Evaluar mi caso
+                    Evaluar mi caso gratis
                     <IconoFlecha className="size-4" />
                   </Cta>
                   <Cta href="#como-funciona" variante="secundario" className="h-13 px-7 text-base">Cómo funciona</Cta>
@@ -166,7 +166,7 @@ export default async function Inicio() {
             </div>
             <div>
               <div id="solicitud-tarjeta" className="mx-auto w-full max-w-[35rem] rounded-3xl border border-linea/70 bg-white p-5 shadow-tarjeta sm:p-8 lg:mr-0">
-                <Wizard servicio={config.servicio_nombre} precio={config.precio_clp} />
+                <Wizard />
               </div>
               <p className="mx-auto mt-4 max-w-[35rem] text-center text-xs leading-relaxed text-tenue lg:mr-0">{NOTA_LEGAL}</p>
             </div>

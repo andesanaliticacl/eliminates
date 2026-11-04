@@ -2,7 +2,6 @@ import { ESTADOS, type EstadoSolicitud } from "@/lib/tipos";
 
 const CLASES: Record<EstadoSolicitud, string> = {
   nueva: "bg-marino/8 text-marino",
-  pendiente_pago: "bg-ambar/15 text-marino",
   en_curso: "bg-limpio-claro text-limpio",
   cerrada: "bg-fondo text-tenue",
 };

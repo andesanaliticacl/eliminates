@@ -1,64 +1,9 @@
 import { urlSitio } from "./config";
-import { formatearCLP, formatearFecha, formatearHora } from "./fechas";
+import { formatearFecha, formatearHora } from "./fechas";
 import { correoConfigurado, enviarCorreo, enviarPlantillaWhatsApp, plantillaCorreo, whatsappConfigurado } from "./mensajeria";
-import { obtenerPago } from "./mercadopago";
-import { obtenerStore } from "./store";
 import type { Store } from "./store/tipos";
 import type { Solicitud } from "./tipos";
 import { telefonoE164 } from "./validacion";
-
-export interface EstadoPagoRecibido {
-  solicitudId: string;
-  paymentId: string;
-  status: string;
-  monto: number;
-  moneda: string;
-}
-
-/**
- * Único punto donde un pago cambia el estado de una solicitud. Lo llaman el webhook
- * y la consulta de la página de retorno, siempre con datos leídos de la API de Mercado Pago.
- * Devuelve false si alguna notificación falló, para que el webhook pida reintento.
- */
-export async function aplicarPago(pago: EstadoPagoRecibido): Promise<boolean> {
-  const store = await obtenerStore();
-  const solicitud = await store.solicitudPorId(pago.solicitudId);
-  if (!solicitud) {
-    console.warn(`Pago ${pago.paymentId} con referencia desconocida: ${pago.solicitudId}`);
-    return true;
-  }
-
-  if (pago.status === "approved") {
-    if (pago.moneda !== "CLP" || pago.monto !== solicitud.monto_clp) {
-      await store.agregarNota(
-        solicitud.id,
-        "Sistema",
-        `Pago ${pago.paymentId} aprobado por ${pago.monto} ${pago.moneda}, distinto de lo cobrado (${solicitud.monto_clp} CLP). No se confirmó la solicitud.`,
-      );
-      return true;
-    }
-    const confirmada = await store.confirmarPago(solicitud.id, pago.paymentId);
-    return enviarNotificacionesDePago(store, confirmada);
-  }
-
-  await store.registrarPagoNoAprobado(solicitud.id, pago.paymentId, pago.status);
-  if (pago.status === "rejected" || pago.status === "cancelled") {
-    return enviarAvisoDeReintento(store, solicitud);
-  }
-  return true;
-}
-
-export async function procesarPagoMP(paymentId: string): Promise<boolean> {
-  const pago = await obtenerPago(paymentId);
-  if (!pago.external_reference) return true;
-  return aplicarPago({
-    solicitudId: pago.external_reference,
-    paymentId: String(pago.id),
-    status: pago.status,
-    monto: pago.transaction_amount,
-    moneda: pago.currency_id,
-  });
-}
 
 interface Envio {
   canal: string;
@@ -86,7 +31,8 @@ async function ejecutarEnvios(store: Store, solicitudId: string, envios: Envio[]
   return todoBien;
 }
 
-async function enviarNotificacionesDePago(store: Store, s: Solicitud): Promise<boolean> {
+/** Avisa a la persona y al abogado. Devuelve false si algún canal falló. */
+export async function enviarAvisosDeSolicitud(store: Store, s: Solicitud): Promise<boolean> {
   const [cita, config] = await Promise.all([store.citaDeSolicitud(s.id), store.obtenerConfig()]);
   const numero = s.numero_atencion!;
   const fecha = cita && !s.cita_conflicto ? formatearFecha(cita.inicio) : "por coordinar";
@@ -126,13 +72,13 @@ async function enviarNotificacionesDePago(store: Store, s: Solicitud): Promise<b
       enviar: () =>
         enviarCorreo(
           s.correo,
-          `Tu solicitud ${numero} ya está en curso`,
+          `Recibimos tu caso: ${numero}`,
           plantillaCorreo(
-            `Hola ${primerNombre}, tu solicitud ya está en curso`,
+            `Hola ${primerNombre}, recibimos tu caso`,
             filas,
             s.cita_conflicto
-              ? "Recibimos tu pago, pero el horario que elegiste ya no estaba disponible. Un abogado te contactará para coordinar una nueva hora."
-              : "Ya vas a ser atendido: un abogado revisará tu caso y te contactará.",
+              ? "El horario que elegiste ya no estaba disponible. Un especialista te contactará para coordinar una nueva hora."
+              : "Un especialista revisará tus antecedentes y te contactará dentro de las próximas 24 horas.",
           ),
         ),
     },
@@ -144,30 +90,10 @@ async function enviarNotificacionesDePago(store: Store, s: Solicitud): Promise<b
           config.abogado.correo,
           `Nueva solicitud ${numero}: ${s.nombre}`,
           plantillaCorreo(
-            "Nueva solicitud pagada",
-            [["Cliente", s.nombre], ["RUT", s.rut], ["Teléfono", s.telefono], ["Pagado", formatearCLP(s.monto_clp)], ...filas],
+            "Nueva solicitud de evaluación",
+            [["Cliente", s.nombre], ["RUT", s.rut], ["Teléfono", s.telefono], ...filas],
             s.cita_conflicto ? "Atención: hay que coordinar una nueva hora con esta persona." : "Revisa el caso en el panel antes de la cita.",
             { texto: "Abrir en el panel", url: enlacePanel },
-          ),
-        ),
-    },
-  ]);
-}
-
-async function enviarAvisoDeReintento(store: Store, s: Solicitud): Promise<boolean> {
-  return ejecutarEnvios(store, s.id, [
-    {
-      canal: "correo_reintento",
-      disponible: correoConfigurado(),
-      enviar: () =>
-        enviarCorreo(
-          s.correo,
-          "Tu pago no se pudo completar",
-          plantillaCorreo(
-            "Tu pago no se pudo completar",
-            [["Servicio", s.servicio], ["Monto", formatearCLP(s.monto_clp)]],
-            "Guardamos tu solicitud. Puedes reintentar el pago desde este enlace; el horario se libera 30 minutos después de iniciado el pago, y si ya no está disponible podrás elegir otro.",
-            { texto: "Reintentar el pago", url: `${urlSitio()}/solicitud/${s.token}` },
           ),
         ),
     },

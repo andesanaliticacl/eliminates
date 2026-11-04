@@ -22,7 +22,7 @@ export const GET = ruta(async (req: Request) => {
     limite: 5000,
   });
 
-  const encabezado = ["Número", "Estado", "Creada", "Nombre", "RUT", "Teléfono", "Correo", "Comuna", "Antecedentes", "Monto aprox.", "Descripción", "Cita", "Modalidad", "Pago CLP", "Estado pago", "ID pago"];
+  const encabezado = ["Número", "Estado", "Creada", "Nombre", "RUT", "Teléfono", "Correo", "Comuna", "Antecedentes", "Monto aprox.", "Descripción", "Cita", "Modalidad"];
   const lineas = filas.map((s) =>
     [
       s.numero_atencion,
@@ -38,9 +38,6 @@ export const GET = ruta(async (req: Request) => {
       s.descripcion,
       s.cita ? formatearFechaHora(s.cita.inicio) : "",
       s.cita?.modalidad,
-      s.monto_clp,
-      s.pago_estado,
-      s.mp_payment_id,
     ]
       .map(celda)
       .join(";"),

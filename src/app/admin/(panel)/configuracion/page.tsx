@@ -5,7 +5,6 @@ import {
   guardarContacto,
   guardarContadores,
   guardarHorarios,
-  guardarPrecio,
   guardarTestimonios,
 } from "../../acciones";
 
@@ -91,17 +90,6 @@ export default async function PaginaConfiguracion() {
             )}
           </Seccion>
 
-          <Seccion titulo="Precio" ayuda="Se aplica a las solicitudes nuevas.">
-            <form action={guardarPrecio} className="grid gap-3">
-              <label className={ETIQUETA}>Servicio
-                <input name="servicio" required maxLength={120} defaultValue={config.servicio_nombre} className={CAMPO} />
-              </label>
-              <label className={ETIQUETA}>Monto (CLP)
-                <input type="number" name="precio" required min={100} defaultValue={config.precio_clp} className={CAMPO} />
-              </label>
-              <div><button className="h-10 rounded-xl bg-marino px-5 text-sm font-semibold text-white">Guardar precio</button></div>
-            </form>
-          </Seccion>
         </div>
 
         <Seccion titulo="Contadores" ayuda={config.contadores.ejemplo ? "Hoy se publican rotulados como “Cifras de ejemplo”. Ingresa tus cifras reales y guarda para quitar el rótulo." : undefined}>

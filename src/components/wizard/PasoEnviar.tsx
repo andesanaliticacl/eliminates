@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { formatearCLP, formatearFecha, formatearHora } from "@/lib/fechas";
 import { IconoCheck } from "../iconos";
 import { actualizarBorrador, useBorrador } from "./borrador";
 import type { ArchivoElegido } from "./PasoCaso";
@@ -44,40 +43,18 @@ async function pedir(url: string, cuerpo: unknown) {
   return { ok: r.ok, status: r.status, datos };
 }
 
-function Cuenta({ hasta, alVencer }: { hasta: string; alVencer: () => void }) {
-  const [restante, setRestante] = useState<number | null>(null);
-  useEffect(() => {
-    const tic = () => {
-      const r = new Date(hasta).getTime() - Date.now();
-      setRestante(r);
-      if (r <= 0) alVencer();
-    };
-    tic();
-    const t = setInterval(tic, 1000);
-    return () => clearInterval(t);
-  }, [hasta, alVencer]);
-  if (restante === null || restante <= 0) return null;
-  const min = Math.floor(restante / 60000);
-  const seg = Math.floor((restante % 60000) / 1000);
-  return (
-    <span className="tabular-nums">
-      {min}:{String(seg).padStart(2, "0")}
-    </span>
-  );
-}
-
-export function PasoPago({
-  servicio,
-  precio,
+export function PasoEnviar({
   archivos,
   alCambiarArchivos,
-  alVencerHorario,
+  horarioListo,
+  alFaltarHorario,
+  alPerderHorario,
 }: {
-  servicio: string;
-  precio: number;
   archivos: ArchivoElegido[];
   alCambiarArchivos: (lista: ArchivoElegido[]) => void;
-  alVencerHorario: (mensaje: string) => void;
+  horarioListo: boolean;
+  alFaltarHorario: () => void;
+  alPerderHorario: (mensaje: string) => void;
 }) {
   const b = useBorrador();
   const [consentimiento, setConsentimiento] = useState(false);
@@ -86,12 +63,6 @@ export function PasoPago({
   const [fallo, setFallo] = useState<string | null>(null);
   const [turnstile, setTurnstile] = useState("");
   const honeypot = useRef<HTMLInputElement>(null);
-
-  const vencer = useRef(() => {});
-  vencer.current = () => {
-    if (!b.solicitudToken) alVencerHorario("Tu reserva de horario venció. Elige una hora nuevamente.");
-  };
-  const alVencer = useRef(() => vencer.current()).current;
 
   const subirArchivos = async (token: string) => {
     let lista = [...archivos];
@@ -128,13 +99,17 @@ export function PasoPago({
     }
 
     if (rechazados.length > 0) {
-      throw new Error(`No pudimos adjuntar ${rechazados.join(", ")}: no es un PDF, JPG o PNG válido. Puedes continuar con el pago y enviárselo después al abogado.`);
+      throw new Error(`No pudimos adjuntar ${rechazados.join(", ")}: no es un PDF, JPG o PNG válido. Puedes enviar tu solicitud sin él y entregárselo después al especialista.`);
     }
   };
 
-  const pagar = async () => {
+  const enviar = async () => {
     setIntentado(true);
     setFallo(null);
+    if (!b.solicitudToken && !horarioListo) {
+      alFaltarHorario();
+      return;
+    }
     if (!consentimiento) return;
     if (SITE_KEY && !turnstile && !b.solicitudToken) {
       setFallo("Completa la verificación antes de continuar.");
@@ -143,6 +118,17 @@ export function PasoPago({
     try {
       let token = b.solicitudToken;
       if (!token) {
+        // El horario se retiene recién aquí: hasta este punto no se ha enviado ningún dato personal.
+        setEstado("Reservando tu horario…");
+        const retencion = await pedir("/api/citas/retener", { inicio: b.inicio, modalidad: b.modalidad, holdPrevio: b.holdToken });
+        if (retencion.status === 409) {
+          setEstado(null);
+          alPerderHorario(retencion.datos.error);
+          return;
+        }
+        if (!retencion.ok) throw new Error(retencion.datos.error ?? "No pudimos reservar el horario.");
+        actualizarBorrador({ holdToken: retencion.datos.hold_token, holdExpira: retencion.datos.expira_en });
+
         setEstado("Guardando tu solicitud…");
         const creada = await pedir("/api/solicitudes", {
           datos: {
@@ -155,13 +141,14 @@ export function PasoPago({
             monto_aproximado: b.monto || null,
             descripcion: b.descripcion,
           },
-          holdToken: b.holdToken,
+          holdToken: retencion.datos.hold_token,
           consentimiento,
           turnstile,
           sitio_web: honeypot.current?.value,
         });
         if (creada.datos.codigo === "HOLD_EXPIRADO") {
-          alVencerHorario(creada.datos.error);
+          setEstado(null);
+          alPerderHorario(creada.datos.error);
           return;
         }
         if (!creada.ok) throw new Error(creada.datos.error ?? "No pudimos guardar tu solicitud.");
@@ -171,18 +158,10 @@ export function PasoPago({
 
       await subirArchivos(token);
 
-      setEstado("Conectando con Mercado Pago…");
-      const pago = await pedir("/api/pagos/crear", { token });
-      if (pago.datos.url) {
-        window.location.assign(pago.datos.url);
-        return;
-      }
-      // Ya pagada, o el horario se perdió: esa página sabe resolver ambos casos.
-      if (pago.datos.yaPagada || pago.status === 409) {
-        window.location.assign(`/solicitud/${token}`);
-        return;
-      }
-      throw new Error(pago.datos.error ?? "No pudimos iniciar el pago.");
+      setEstado("Enviando tu caso…");
+      const envio = await pedir("/api/solicitudes/enviar", { token });
+      if (!envio.ok) throw new Error(envio.datos.error ?? "No pudimos enviar tu solicitud.");
+      window.location.assign(`/solicitud/${token}`);
     } catch (e) {
       setFallo(e instanceof Error ? e.message : "Ocurrió un error. Inténtalo nuevamente.");
       setEstado(null);
@@ -190,36 +169,7 @@ export function PasoPago({
   };
 
   return (
-    <div className="grid gap-5">
-      <dl className="divide-y divide-linea rounded-xl border border-linea px-4 text-sm">
-        <div className="flex justify-between gap-4 py-3">
-          <dt className="text-tenue">Servicio</dt>
-          <dd className="text-right font-medium text-marino">{servicio}</dd>
-        </div>
-        {b.inicio && (
-          <div className="flex justify-between gap-4 py-3">
-            <dt className="text-tenue">Cita</dt>
-            <dd className="text-right font-medium text-marino">
-              {formatearFecha(b.inicio)}, {formatearHora(b.inicio)}
-            </dd>
-          </div>
-        )}
-        <div className="flex justify-between gap-4 py-3">
-          <dt className="text-tenue">Modalidad</dt>
-          <dd className="font-medium text-marino">{b.modalidad === "videollamada" ? "Videollamada" : "Presencial"}</dd>
-        </div>
-        <div className="flex items-baseline justify-between gap-4 py-3">
-          <dt className="text-tenue">Total</dt>
-          <dd className="text-xl font-semibold tracking-tight text-marino tabular-nums">{formatearCLP(precio)}</dd>
-        </div>
-      </dl>
-
-      {b.holdExpira && !b.solicitudToken && (
-        <p className="text-sm text-tenue">
-          Reservamos tu horario por <Cuenta hasta={b.holdExpira} alVencer={alVencer} /> mientras pagas.
-        </p>
-      )}
-
+    <div className="grid gap-4">
       {/* Honeypot: invisible para personas, tentador para bots. */}
       <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
         <label>
@@ -239,7 +189,7 @@ export function PasoPago({
         </span>
       </label>
       {intentado && !consentimiento && (
-        <p role="alert" className="-mt-3 text-sm text-deuda">Necesitamos tu autorización para continuar.</p>
+        <p role="alert" className="-mt-2 text-sm text-deuda">Necesitamos tu autorización para continuar.</p>
       )}
 
       <Turnstile alVerificar={setTurnstile} />
@@ -248,12 +198,13 @@ export function PasoPago({
 
       <button
         type="button"
-        onClick={pagar}
+        onClick={enviar}
         disabled={!!estado}
-        className="flex h-13 w-full items-center justify-center rounded-xl bg-[#009ee3] px-5 text-base font-semibold text-white transition-colors hover:bg-[#0089c7] disabled:opacity-70"
+        className="flex h-13 w-full items-center justify-center rounded-xl bg-marino px-5 text-base font-semibold text-white transition-colors hover:bg-marino-claro disabled:opacity-70"
       >
-        {estado ?? `Pagar ${formatearCLP(precio)} con Mercado Pago`}
+        {estado ?? "Quiero mi evaluación en 24 h"}
       </button>
+      <p className="text-center text-xs text-tenue">Sin costo y sin compromiso. Tus datos son confidenciales.</p>
     </div>
   );
 }

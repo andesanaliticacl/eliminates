@@ -98,16 +98,6 @@ export async function desbloquearDia(formulario: FormData) {
   revalidatePath("/admin/configuracion");
 }
 
-export async function guardarPrecio(formulario: FormData) {
-  await exigirAdmin();
-  await (await obtenerStore()).guardarConfig({
-    servicio_nombre: texto(formulario, "servicio", 120),
-    precio_clp: entero(formulario, "precio", 100, 100_000_000),
-  });
-  revalidatePath("/");
-  revalidatePath("/admin/configuracion");
-}
-
 export async function guardarContadores(formulario: FormData) {
   await exigirAdmin();
   await (await obtenerStore()).guardarConfig({

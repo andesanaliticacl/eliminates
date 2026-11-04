@@ -32,16 +32,13 @@ export interface Store {
   // Agenda
   horariosOcupados(): Promise<string[]>;
   retenerCita(inicio: string, modalidad: Modalidad, holdPrevio: string | null, minutos: number): Promise<{ hold_token: string; expira_en: string } | null>;
-  renovarCita(solicitudId: string, inicio: string | null, minutos: number): Promise<boolean>;
   citaDeSolicitud(solicitudId: string): Promise<Cita | null>;
 
   // Solicitudes
-  crearSolicitud(datos: DatosSolicitud & { servicio: string; monto_clp: number }, holdToken: string, minutos: number): Promise<Solicitud | null>;
+  crearSolicitud(datos: DatosSolicitud, holdToken: string, minutos: number): Promise<Solicitud | null>;
   solicitudPorToken(token: string): Promise<Solicitud | null>;
   solicitudPorId(id: string): Promise<Solicitud | null>;
-  marcarPendientePago(id: string, preferenceId: string | null): Promise<void>;
-  registrarPagoNoAprobado(id: string, paymentId: string, estadoPago: string): Promise<void>;
-  confirmarPago(id: string, paymentId: string): Promise<Solicitud>;
+  confirmarSolicitud(id: string): Promise<Solicitud>;
   cambiarEstado(id: string, estado: EstadoSolicitud): Promise<void>;
   listarSolicitudes(filtro: FiltroSolicitudes): Promise<SolicitudConCita[]>;
 

@@ -84,16 +84,6 @@ export const storeMemoria: Store = {
     db.citas.push(cita);
     return { hold_token: cita.hold_token, expira_en: cita.expira_en! };
   },
-  async renovarCita(solicitudId, inicio, minutos) {
-    const cita = citaDe(solicitudId);
-    if (!cita || cita.estado === "confirmada" || cita.estado === "cancelada") return false;
-    const destino = inicio ?? cita.inicio;
-    if (db.citas.some((c) => c !== cita && activa(c) && mismoInicio(c.inicio, destino))) return false;
-    cita.inicio = destino;
-    cita.estado = "retenida";
-    cita.expira_en = minutosDesdeAhora(minutos);
-    return true;
-  },
   async citaDeSolicitud(solicitudId) {
     return citaDe(solicitudId);
   },
@@ -108,10 +98,7 @@ export const storeMemoria: Store = {
       numero_atencion: null,
       estado: "nueva",
       consentimiento_en: ahora(),
-      mp_preference_id: null,
-      mp_payment_id: null,
-      pago_estado: null,
-      pagado_en: null,
+      enviada_en: null,
       cita_conflicto: false,
       creado_en: ahora(),
     };
@@ -126,32 +113,15 @@ export const storeMemoria: Store = {
   async solicitudPorId(id) {
     return db.solicitudes.find((s) => s.id === id) ?? null;
   },
-  async marcarPendientePago(id, preferenceId) {
-    const s = db.solicitudes.find((x) => x.id === id);
-    if (s && s.estado === "nueva") s.estado = "pendiente_pago";
-    if (s) s.mp_preference_id = preferenceId;
-  },
-  async registrarPagoNoAprobado(id, paymentId, estadoPago) {
-    const s = db.solicitudes.find((x) => x.id === id);
-    if (!s || s.numero_atencion) return;
-    s.estado = "pendiente_pago";
-    s.mp_payment_id = paymentId;
-    s.pago_estado = estadoPago;
-  },
-  async confirmarPago(id, paymentId) {
+  async confirmarSolicitud(id) {
     const s = db.solicitudes.find((x) => x.id === id);
     if (!s) throw new Error("SOLICITUD_NO_ENCONTRADA");
-    if (s.numero_atencion) {
-      if (s.mp_payment_id !== paymentId) {
-        await this.agregarNota(id, "Sistema", `Pago adicional aprobado (${paymentId}): revisar si corresponde devolverlo.`);
-      }
-      return s;
-    }
+    if (s.numero_atencion) return s;
     const cita = citaDe(id);
     const tomado = !cita || db.citas.some((c) => c !== cita && activa(c) && mismoInicio(c.inicio, cita.inicio));
     if (tomado) {
       s.cita_conflicto = true;
-      await this.agregarNota(id, "Sistema", "El pago llegó después de que el horario fuera tomado por otra persona: coordinar una nueva hora.");
+      await this.agregarNota(id, "Sistema", "Al enviar la solicitud, el horario ya estaba tomado por otra persona: coordinar una nueva hora.");
     } else {
       cita.estado = "confirmada";
       cita.expira_en = null;
@@ -159,9 +129,7 @@ export const storeMemoria: Store = {
     db.correlativo += 1;
     s.numero_atencion = `ELM-${String(db.correlativo).padStart(6, "0")}`;
     s.estado = "en_curso";
-    s.mp_payment_id = paymentId;
-    s.pago_estado = "approved";
-    s.pagado_en = ahora();
+    s.enviada_en = ahora();
     return s;
   },
   async cambiarEstado(id, estado) {

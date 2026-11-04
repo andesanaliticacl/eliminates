@@ -41,7 +41,7 @@ export const BORRADOR_VACIO: Borrador = {
   archivos: [],
 };
 
-const CLAVE = "eliminate.solicitud.v1";
+const CLAVE = "eliminate.solicitud.v2";
 // Son datos personales en el dispositivo de la persona: no se conservan indefinidamente.
 const DURACION_MS = 7 * 24 * 60 * 60 * 1000;
 

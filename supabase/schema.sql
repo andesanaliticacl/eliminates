@@ -8,7 +8,7 @@
 --     políticas propias.
 -- ═══════════════════════════════════════════════════════════════════════════
 
-create type estado_solicitud as enum ('nueva', 'pendiente_pago', 'en_curso', 'cerrada');
+create type estado_solicitud as enum ('nueva', 'en_curso', 'cerrada');
 create type estado_cita as enum ('retenida', 'confirmada', 'liberada', 'cancelada');
 create type modalidad_cita as enum ('presencial', 'videollamada');
 
@@ -35,13 +35,8 @@ create table solicitudes (
   monto_aproximado bigint check (monto_aproximado is null or monto_aproximado >= 0),
   descripcion text,
   consentimiento_en timestamptz not null,
-  servicio text not null,
-  monto_clp integer not null check (monto_clp > 0),
-  mp_preference_id text,
-  mp_payment_id text,
-  pago_estado text,
-  pagado_en timestamptz,
-  -- El pago llegó cuando el horario ya lo había tomado otra persona: hay que reagendar.
+  enviada_en timestamptz,
+  -- Al enviar, el horario ya lo había tomado otra persona: hay que coordinar otra hora.
   cita_conflicto boolean not null default false,
   creado_en timestamptz not null default now(),
   actualizado_en timestamptz not null default now()
@@ -181,12 +176,11 @@ begin
   end if;
 
   insert into solicitudes (nombre, rut, telefono, correo, comuna, antecedentes, monto_aproximado,
-                           descripcion, consentimiento_en, servicio, monto_clp)
+                           descripcion, consentimiento_en)
   values (
     p_datos->>'nombre', p_datos->>'rut', p_datos->>'telefono', p_datos->>'correo', p_datos->>'comuna',
     array(select jsonb_array_elements_text(p_datos->'antecedentes')),
-    (p_datos->>'monto_aproximado')::bigint, p_datos->>'descripcion', now(),
-    p_datos->>'servicio', (p_datos->>'monto_clp')::integer
+    (p_datos->>'monto_aproximado')::bigint, p_datos->>'descripcion', now()
   ) returning * into v_solicitud;
 
   update citas set solicitud_id = v_solicitud.id, expira_en = now() + make_interval(mins => p_minutos)
@@ -196,46 +190,9 @@ begin
 end;
 $$;
 
--- Para reintentar un pago: renueva la retención y, si venció, vuelve a tomar el horario
--- (o uno nuevo, si la persona eligió otro). Devuelve false si el horario ya no está libre.
-create function renovar_cita(p_solicitud_id uuid, p_inicio timestamptz, p_minutos integer)
-returns boolean
-language plpgsql set search_path = public as $$
-declare
-  v_cita citas;
-  v_inicio timestamptz;
-begin
-  select * into v_cita from citas
-   where solicitud_id = p_solicitud_id and estado in ('retenida', 'liberada')
-   order by creado_en desc limit 1 for update;
-  if not found then
-    return false;
-  end if;
-  v_inicio := coalesce(p_inicio, v_cita.inicio);
-
-  update citas set estado = 'liberada'
-   where inicio = v_inicio and estado = 'retenida' and expira_en <= now() and id <> v_cita.id;
-
-  if v_cita.estado = 'retenida' and v_cita.expira_en > now() and v_inicio = v_cita.inicio then
-    update citas set expira_en = now() + make_interval(mins => p_minutos) where id = v_cita.id;
-    return true;
-  end if;
-
-  update citas set estado = 'liberada' where id = v_cita.id and estado = 'retenida';
-  begin
-    update citas set inicio = v_inicio, estado = 'retenida',
-                     expira_en = now() + make_interval(mins => p_minutos)
-     where id = v_cita.id;
-  exception when unique_violation then
-    return false;
-  end;
-  return true;
-end;
-$$;
-
--- Aplica un pago aprobado. Idempotente y bajo bloqueo: solo la primera llamada genera
+-- Confirma el envío de la solicitud. Idempotente y bajo bloqueo: solo la primera llamada genera
 -- el número de atención. El llamador envía las notificaciones (con su propio reclamo).
-create function confirmar_pago(p_solicitud_id uuid, p_payment_id text)
+create function confirmar_solicitud(p_solicitud_id uuid)
 returns solicitudes
 language plpgsql set search_path = public as $$
 declare
@@ -249,13 +206,6 @@ begin
   end if;
 
   if v_solicitud.numero_atencion is not null then
-    if v_solicitud.mp_payment_id is distinct from p_payment_id then
-      insert into notas_internas (solicitud_id, autor, texto)
-      select p_solicitud_id, 'Sistema', 'Pago adicional aprobado (' || p_payment_id || '): revisar si corresponde devolverlo.'
-       where not exists (
-         select 1 from notas_internas where solicitud_id = p_solicitud_id and texto like '%(' || p_payment_id || ')%'
-       );
-    end if;
     return v_solicitud;
   end if;
 
@@ -278,15 +228,13 @@ begin
 
   if v_conflicto then
     insert into notas_internas (solicitud_id, autor, texto)
-    values (p_solicitud_id, 'Sistema', 'El pago llegó después de que el horario fuera tomado por otra persona: coordinar una nueva hora.');
+    values (p_solicitud_id, 'Sistema', 'Al enviar la solicitud, el horario ya estaba tomado por otra persona: coordinar una nueva hora.');
   end if;
 
   update solicitudes set
     numero_atencion = 'ELM-' || lpad(nextval('numero_atencion_seq')::text, 6, '0'),
     estado = 'en_curso',
-    mp_payment_id = p_payment_id,
-    pago_estado = 'approved',
-    pagado_en = now(),
+    enviada_en = now(),
     cita_conflicto = v_conflicto
   where id = p_solicitud_id
   returning * into v_solicitud;
@@ -316,13 +264,11 @@ $$;
 -- Estas funciones escriben sin pasar por RLS de usuario: solo el servidor puede llamarlas.
 revoke execute on function retener_cita(timestamptz, modalidad_cita, text, integer) from public, anon, authenticated;
 revoke execute on function crear_solicitud(jsonb, text, integer) from public, anon, authenticated;
-revoke execute on function renovar_cita(uuid, timestamptz, integer) from public, anon, authenticated;
-revoke execute on function confirmar_pago(uuid, text) from public, anon, authenticated;
+revoke execute on function confirmar_solicitud(uuid) from public, anon, authenticated;
 revoke execute on function rate_limit_hit(text, integer, integer) from public, anon, authenticated;
 grant execute on function retener_cita(timestamptz, modalidad_cita, text, integer) to service_role;
 grant execute on function crear_solicitud(jsonb, text, integer) to service_role;
-grant execute on function renovar_cita(uuid, timestamptz, integer) to service_role;
-grant execute on function confirmar_pago(uuid, text) to service_role;
+grant execute on function confirmar_solicitud(uuid) to service_role;
 grant execute on function rate_limit_hit(text, integer, integer) to service_role;
 
 -- ─── Row Level Security ─────────────────────────────────────────────────────
