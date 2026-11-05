@@ -24,14 +24,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#000000" };
 
-const APLICAR_TEMA = `try{if(localStorage.getItem("eliminate.tema")==="blanco")delete document.documentElement.dataset.tema}catch(e){}`;
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-CL" data-tema="negro" className={GeistSans.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: APLICAR_TEMA }} />
-      </head>
+    <html lang="es-CL" data-tema="negro" className={GeistSans.variable}>
       <body>{children}</body>
     </html>
   );

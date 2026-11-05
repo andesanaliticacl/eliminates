@@ -13,19 +13,13 @@ function abrir(e: MouseEvent, href: string) {
 }
 
 function SelectorTema() {
+  // Siempre parte en negro; lo elegido dura solo mientras se está en la página.
   const [negro, setNegro] = useState(true);
-
-  useEffect(() => {
-    setNegro(document.documentElement.dataset.tema === "negro");
-  }, []);
 
   const elegir = (valor: boolean) => {
     setNegro(valor);
     if (valor) document.documentElement.dataset.tema = "negro";
     else delete document.documentElement.dataset.tema;
-    try {
-      localStorage.setItem("eliminate.tema", valor ? "negro" : "blanco");
-    } catch {}
   };
 
   const boton = (activo: boolean) =>
