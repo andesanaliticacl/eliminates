@@ -13,7 +13,7 @@ function abrir(e: MouseEvent, href: string) {
 }
 
 function SelectorTema() {
-  const [negro, setNegro] = useState(false);
+  const [negro, setNegro] = useState(true);
 
   useEffect(() => {
     setNegro(document.documentElement.dataset.tema === "negro");
@@ -55,7 +55,6 @@ export function Navbar({ logoUrl }: { logoUrl: string }) {
 
   return (
     <>
-      <div id="barra-progreso" aria-hidden="true" className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-limpio" />
       <header className="fixed inset-x-0 top-1.5 z-40 px-2 lg:top-3 lg:px-4">
         <nav aria-label="Principal" className={`mx-auto flex h-12 max-w-[76rem] items-center justify-between rounded-full border pr-1.5 pl-4 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 lg:h-14 lg:pr-2 lg:pl-6 ${solida ? "border-linea/70 bg-white/75 shadow-[0_8px_30px_-12px_rgb(11_31_58/0.25)] backdrop-blur-xl" : "border-transparent"}`}>
           <Link href="/" aria-label="Elimínate, inicio"><Logo url={logoUrl} /></Link>

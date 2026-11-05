@@ -8,6 +8,7 @@
   --color-tenue: #5b6779;
   --color-linea: #e3e6eb;
   --color-fondo: #f5f6f8;
+  --color-superficie: #ffffff;
   --color-deuda: #a8433f;
   --color-limpio: #07875f;
   --color-limpio-claro: #e6f5ef;
@@ -15,6 +16,12 @@
   --color-ambar: #d6a23c;
 
   --spacing-13: 3.25rem;
+
+  --cono-rojo: 168 67 63;
+  --cono-verde: 7 135 95;
+  --cono-fuerza: 0.12;
+  --anillos: 0.1;
+  --aura: 0.12;
 
   --shadow-tarjeta: 0 1px 2px rgb(11 31 58 / 0.04), 0 12px 32px -8px rgb(11 31 58 / 0.1), 0 40px 80px -32px rgb(11 31 58 / 0.14);
 }
@@ -25,12 +32,18 @@
  */
 html[data-tema="negro"] {
   color-scheme: dark;
+  --cono-rojo: 239 90 84;
+  --cono-verde: 47 199 149;
+  --cono-fuerza: 0.3;
+  --anillos: 0.16;
+  --aura: 0.28;
   --color-white: #000;
   --color-marino: #f4f6f8;
   --color-marino-claro: #d5dae1;
   --color-tenue: #a3acb9;
   --color-linea: #2a2e35;
-  --color-fondo: #0d0f12;
+  --color-fondo: #07090b;
+  --color-superficie: #0f1216;
   --color-deuda: #ef8a84;
   --color-limpio: #2fc795;
   --color-limpio-claro: #0d2a20;
@@ -39,29 +52,8 @@ html[data-tema="negro"] {
   --shadow-tarjeta: 0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 60px -20px rgb(0 0 0 / 0.9);
 }
 
-/* Estas dos piezas mantienen su color propio: invertidas pierden peso sobre el negro */
-html[data-tema="negro"] .informe-cabecera {
-  background: #8f3732;
-  color: #fff;
-}
-html[data-tema="negro"] .informe-cabecera [data-cabecera-limpia] {
-  background: #0a7d59;
-}
-html[data-tema="negro"] .cierre-radar {
-  background-color: #0d0f12;
-  border-block: 1px solid var(--color-linea);
-}
-html[data-tema="negro"] .cierre-radar h2 {
-  color: #fff;
-}
-html[data-tema="negro"] .cierre-radar a {
-  background: #fff;
-  color: #000;
-}
-
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-behavior: auto;
 }
 
 body {
@@ -82,29 +74,29 @@ summary {
   cursor: pointer;
 }
 
-/* Lenis */
-html.lenis,
-html.lenis body {
-  height: auto;
+/* ─── Entrada del texto, sin JS para no retrasar el LCP ─── */
+.titular {
+  animation: aparece 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
+.marcador {
+  position: relative;
+  isolation: isolate;
+  white-space: nowrap;
 }
-.lenis.lenis-stopped {
-  overflow: clip;
+.marcador::after {
+  content: "";
+  position: absolute;
+  inset: 58% -2% 4%;
+  z-index: -1;
+  border-radius: 0.1em;
+  background: var(--color-limpio);
+  opacity: 0.4;
+  transform-origin: left;
+  animation: marcador 0.7s 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
-
-/* ─── Titular del hero: palabra por palabra, sin JS para no retrasar el LCP ─── */
-.palabra {
-  display: inline-block;
-  animation: palabra-entra 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: calc(var(--i) * 90ms);
-}
-/* 0.01 y no 0: Chrome no considera para LCP un texto que parte invisible. */
-@keyframes palabra-entra {
+@keyframes marcador {
   from {
-    opacity: 0.01;
-    transform: translateY(0.35em);
+    transform: scaleX(0);
   }
 }
 
@@ -114,44 +106,57 @@ html.lenis body {
 }
 @keyframes aparece {
   from {
+    /* 0.01 y no 0: Chrome no considera para LCP un texto que parte invisible. */
     opacity: 0.01;
     transform: translateY(12px);
   }
 }
 
-/* ─── Tarjeta: entrada con profundidad y flotación en reposo ─── */
-@media (prefers-reduced-motion: no-preference) {
-  .tarjeta-entra {
-    transform-origin: 50% 100%;
-    animation: tarjeta-entra 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .fila-entra {
-    animation: fila-entra 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--i) * 90ms + 350ms);
-  }
+/* ─── Informe que se borra: --avance va de 0 a 100 ─── */
+.informe-raiz {
+  --avance: 0;
 }
-@keyframes tarjeta-entra {
-  from {
-    opacity: 0.01;
-    transform: perspective(1200px) translateY(48px) rotateX(16deg) scale(0.95);
-  }
+.informe-lienzo {
+  touch-action: pan-y;
 }
-@keyframes fila-entra {
-  from {
-    opacity: 0.01;
-    transform: translateX(-14px);
-  }
+.informe-cara-limpia {
+  clip-path: inset(0 calc(100% - var(--avance) * 1%) 0 0);
 }
+.informe-mango {
+  /* Se detiene antes del borde para que el mango no se corte, y desaparece al terminar */
+  left: clamp(1.5rem, calc(var(--avance) * 1%), calc(100% - 1.5rem));
+  opacity: calc(100 - var(--avance));
+  transform: translateX(-50%);
+}
+.informe-aguja {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  transform: rotate(calc(-70deg + var(--avance) * 1.38deg));
+}
+.informe-aura-roja {
+  background: var(--color-deuda);
+  opacity: calc((1 - var(--avance) / 100) * var(--aura));
+}
+.informe-aura-verde {
+  background: var(--color-limpio);
+  opacity: calc(var(--avance) / 100 * var(--aura));
+}
+
 /* ─── Radar de fondo ─── */
 .radar-mascara {
   -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
   mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
 }
+.radar-anillos {
+  opacity: var(--anillos);
+}
 .radar-cono-rojo {
-  background: conic-gradient(from 0deg, transparent 0 285deg, rgb(168 67 63 / 0.1) 360deg);
+  opacity: calc(1 - var(--avance) / 100);
+  background: conic-gradient(from 0deg, transparent 0 285deg, rgb(var(--cono-rojo) / var(--cono-fuerza)) 360deg);
 }
 .radar-cono-verde {
-  background: conic-gradient(from 0deg, transparent 0 285deg, rgb(7 135 95 / 0.13) 360deg);
+  opacity: calc(var(--avance) / 100);
+  background: conic-gradient(from 0deg, transparent 0 285deg, rgb(var(--cono-verde) / var(--cono-fuerza)) 360deg);
 }
 @media (prefers-reduced-motion: no-preference) {
   .radar-barrido {
@@ -165,6 +170,19 @@ html.lenis body {
     border-radius: 9999px;
     background: inherit;
     animation: radar-eco 7s ease-out var(--eco, 0s) infinite both;
+  }
+}
+.radar-pulso {
+  animation: radar-pulso 1.4s ease-out both;
+}
+@keyframes radar-pulso {
+  from {
+    opacity: 0.7;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
   }
 }
 @keyframes radar-gira {
@@ -199,7 +217,7 @@ html.lenis body {
   color: var(--color-limpio-oscuro);
 }
 
-/* Luz que sigue al cursor: las coordenadas las pone Animaciones.tsx */
+/* Luz que sigue al cursor: las coordenadas las pone LuzTarjetas.tsx */
 .tarjeta-luz {
   position: relative;
   isolation: isolate;
@@ -221,51 +239,32 @@ html.lenis body {
   }
 }
 
-.fila-informe {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+/* En móvil las tarjetas se deslizan de lado: la página no crece hacia abajo */
+.carrusel {
+  scrollbar-width: none;
 }
-li:first-child > .fila-informe {
-  border-top-color: transparent;
+.carrusel::-webkit-scrollbar {
+  display: none;
+}
+
+.tarjeta-alza {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
 }
 @media (hover: hover) {
-  .fila-informe[aria-pressed="false"]:hover {
-    background: color-mix(in srgb, var(--color-marino) 5%, transparent);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .pista-punto {
-    animation: pista 1.6s ease-in-out infinite;
-  }
-}
-@keyframes pista {
-  50% {
-    opacity: 0.35;
-    transform: scale(0.7);
-  }
-}
-
-.cierre-radar {
-  background-image: repeating-radial-gradient(circle at 50% 120%, transparent 0 89px, rgb(255 255 255 / 0.07) 90px 91px);
-}
-
-/* ─── Indicador "Desliza" ─── */
-.desliza-punto {
-  animation: desliza 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-@keyframes desliza {
-  0% {
-    opacity: 0;
+  .tarjeta-alza:hover {
     transform: translateY(-4px);
   }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(12px);
-  }
+}
+
+/* El cierre conserva su azul en ambos temas, así que su botón también tiene color propio */
+.cierre-radar a {
+  background: #fff;
+  color: #0b1f3a;
+}
+.cierre-radar {
+  background-color: #0b1f3a;
+  color: #fff;
+  background-image: repeating-radial-gradient(circle at 50% 120%, transparent 0 89px, rgb(255 255 255 / 0.07) 90px 91px);
 }
 
 /* ─── Botón de WhatsApp: pulso suave cada pocos segundos ─── */
@@ -345,14 +344,36 @@ li:first-child > .fila-informe {
   transform: rotate(45deg);
 }
 
-/* ─── Escenario de la tarjeta ─── */
-.perspectiva {
-  perspective: 1400px;
+/* ─── Formulario en panel lateral ─── */
+.panel-lateral {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(100%, 36rem);
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid var(--color-linea);
 }
-.cara {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  will-change: transform;
+.panel-lateral[open] {
+  animation: panel-entra 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.panel-lateral::backdrop {
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(6px);
+}
+@keyframes panel-entra {
+  from {
+    transform: translateX(100%);
+  }
+}
+html:has(.panel-lateral[open]) {
+  overflow: hidden;
+}
+#panel {
+  scroll-margin-top: 3.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -365,8 +386,8 @@ li:first-child > .fila-informe {
     transition-duration: 0.01ms !important;
   }
   .pulso::before,
-  .desliza-punto,
-  .radar-barrido {
+  .radar-barrido,
+  .radar-pulso {
     display: none;
   }
 }

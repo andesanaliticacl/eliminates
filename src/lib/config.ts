@@ -24,8 +24,8 @@ export const CONFIG_POR_DEFECTO: Config = {
     },
   ],
   contacto: {
-    telefono: "+56 2 0000 0000",
-    whatsapp: "56900000000",
+    telefono: "+56 9 9234 3036",
+    whatsapp: "56992343036",
     correo: "contacto@eliminate.cl",
     direccion: "Dirección por confirmar, Santiago, Chile",
   },

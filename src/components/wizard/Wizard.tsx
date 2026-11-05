@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { irA } from "@/lib/scroll";
 import { IconoAtras, IconoFlecha, IconoPersona, IconoVideo } from "../iconos";
 import { actualizarBorrador, useBorrador } from "./borrador";
 import { PasoCaso, type ArchivoElegido } from "./PasoCaso";
@@ -14,8 +13,8 @@ const PASOS = ["Tus datos", "Tu caso", "Agenda y envío"];
 export function CabeceraWizard({ paso }: { paso: number }) {
   return (
     <header className="mb-6">
-      <h2 className="text-[1.75rem] leading-tight font-semibold tracking-tight text-marino">Elimina tu DICOM hoy</h2>
-      <p className="mt-1 text-[0.95rem] text-tenue">Toma 3 minutos.</p>
+      <h2 id="titulo-evaluacion" className="text-[1.75rem] leading-[1.1] font-bold tracking-[-0.03em] text-marino">Empieza hoy. Te respondemos en 24 horas.</h2>
+      <p className="mt-2 text-[0.95rem] leading-relaxed text-tenue">Cuéntanos qué antecedentes te afectan. Un especialista revisará tu situación y te contactará con una propuesta concreta.</p>
       <div className="mt-5" role="progressbar" aria-label="Avance de la solicitud" aria-valuemin={1} aria-valuemax={PASOS.length} aria-valuenow={paso}>
         <div className="flex gap-1.5">
           {PASOS.map((nombre, i) => (
@@ -71,7 +70,7 @@ export function Wizard() {
     setMostrarErrores(false);
     setFallo(null);
     actualizarBorrador({ paso });
-    irA("#solicitud-tarjeta", { offset: -88 });
+    raiz.current?.closest("dialog")?.scrollTo({ top: 0 });
   };
 
   const pasoValido = () => {

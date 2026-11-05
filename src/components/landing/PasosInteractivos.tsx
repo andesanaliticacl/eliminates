@@ -9,7 +9,7 @@ const PASOS = [
   { titulo: "Gestionamos todo", texto: "Nos encargamos del proceso completo y te mantenemos informado hasta el cierre." },
 ];
 
-const INTERVALO_MS = 2600;
+const INTERVALO_MS = 2400;
 
 // Avanza solo mientras se ve en pantalla, hasta que la persona toca un paso.
 export function PasosInteractivos() {
@@ -30,23 +30,12 @@ export function PasosInteractivos() {
     return () => clearInterval(t);
   }, [visible, manual]);
 
-  // El informe acompaña al paso activo: un sello en cada etapa e historial limpio al final.
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent("eliminate:sello", { detail: visible ? activo : -1 }));
-  }, [visible, activo]);
-
   return (
-    <ol ref={raiz} className="relative mt-4 grid gap-2.5">
-      <span aria-hidden="true" className="absolute top-6 bottom-6 left-[2.125rem] w-px bg-linea" />
-      <span
-        aria-hidden="true"
-        className="absolute top-6 bottom-6 left-[2.125rem] w-px origin-top bg-limpio transition-transform duration-500 ease-out"
-        style={{ transform: `scaleY(${activo / (PASOS.length - 1)})` }}
-      />
+    <ol ref={raiz} className="carrusel -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4 lg:gap-4">
       {PASOS.map(({ titulo, texto }, i) => {
         const hecho = i <= activo;
         return (
-          <li key={titulo} className="relative">
+          <li key={titulo} className="w-[78%] shrink-0 snap-center sm:w-auto">
             <button
               type="button"
               aria-current={i === activo ? "step" : undefined}
@@ -54,17 +43,16 @@ export function PasosInteractivos() {
                 setManual(true);
                 setActivo(i);
               }}
-              className={`tarjeta-luz flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow] duration-300 ${
-                i === activo ? "border-limpio bg-white shadow-md" : "border-linea/80 bg-white/90 hover:border-marino/40"
+              className={`tarjeta-luz tarjeta-alza flex size-full flex-col rounded-3xl border bg-superficie p-5 text-left transition-colors duration-300 lg:p-6 ${
+                i === activo ? "border-limpio" : "border-linea"
               }`}
             >
-              <span className={`grid size-9 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums transition-colors duration-300 ${hecho ? "bg-limpio text-white" : "border border-linea bg-white text-marino"}`}>
-                0{i + 1}
+              <span className={`text-5xl font-bold tracking-[-0.04em] tabular-nums transition-colors duration-300 lg:text-6xl ${hecho ? "text-limpio" : "text-linea"}`}>0{i + 1}</span>
+              <span className="mt-3 h-1 w-full overflow-hidden rounded-full bg-linea">
+                <span className={`block h-full origin-left rounded-full bg-limpio transition-transform duration-500 ease-out ${hecho ? "scale-x-100" : "scale-x-0"}`} />
               </span>
-              <span>
-                <span className="block font-semibold tracking-tight text-marino">{titulo}</span>
-                <span className="block text-sm leading-snug text-tenue">{texto}</span>
-              </span>
+              <span className="mt-4 text-lg leading-snug font-bold tracking-tight text-marino">{titulo}</span>
+              <span className="mt-1.5 text-sm leading-relaxed text-tenue">{texto}</span>
             </button>
           </li>
         );
